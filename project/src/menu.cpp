@@ -412,7 +412,7 @@ void emLevel(Emergencia &em,int typeFlag)
 				int noid;
 				gotoXY(20,17);
 				noid = tipoLocalizacao(em);
-				switch(typeFlag)
+				/*switch(typeFlag)
 				{
 				case 1:
 					em.getCall(noid,0,1,0, false);
@@ -423,7 +423,7 @@ void emLevel(Emergencia &em,int typeFlag)
 				case 3:
 					em.getCall(noid,0,0,1, false);
 					break;
-				}
+				}*/
 				Sleep(2000);
 				getchar();
 				em.resetGV();
@@ -440,7 +440,7 @@ void emLevel(Emergencia &em,int typeFlag)
 				int noid;
 				gotoXY(20,17);
 				noid = tipoLocalizacao(em);
-				switch(typeFlag)
+				/*switch(typeFlag)
 				{
 				case 1:
 					em.getCall(noid,1,1,0, false);
@@ -451,7 +451,7 @@ void emLevel(Emergencia &em,int typeFlag)
 				case 3:
 					em.getCall(noid,1,0,1, true);
 					break;
-				}
+				}*/
 				Sleep(2000);
 				getchar();
 				em.resetGV();
@@ -466,7 +466,7 @@ void emLevel(Emergencia &em,int typeFlag)
 				int noid;
 				gotoXY(20,17);
 				noid = tipoLocalizacao(em);
-				switch(typeFlag)
+				/*switch(typeFlag)
 				{
 				case 1:
 				{
@@ -487,7 +487,7 @@ void emLevel(Emergencia &em,int typeFlag)
 					break;
 				}
 
-				}
+				}*/
 				Sleep(2000);
 				getchar();
 				em.resetGV();

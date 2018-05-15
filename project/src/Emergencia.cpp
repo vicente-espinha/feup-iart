@@ -264,37 +264,36 @@ void Emergencia::pre_process(){
 	}
 }
 
-/*Veiculo* Emergencia::ambulance_selection(){
+Veiculo* Emergencia::ambulance_selection(){
 
-	float x = 0, y = 0, nPessoas = 0;
-	vector<pair<vector<No>,float>> outros_resgates;
+	float x = 0, y = 0;
+	vector<float> people;
+	int total_people = 0, temp_people;
 
-	for(int i = 0; i < resgates.size(); i++){
+	for(unsigned int i = 0; i < resgates.size(); i++){
 
 		x += resgates[i].getX();
 		y += resgates[i].getY();
 
-
-		nPessoas += resgates[i].getNPessoas();
-		outros_resgates = resgates[i].getOutros_Resgatesvector();
-
-		for(int j = 0 ; j < resgates.size();j){
-
-			if(resgates[i] != resgates[j]){
-				if(find(.begin())){
-			}
-		}
+		temp_people = resgates[i].getNPessoas();
+		total_people += temp_people;
+		people.push_back(temp_people);
 	}
 
 	x = x / resgates.size();
 	y = y / resgates.size();
-	nPessoas = nPessoas / resgates.size();
+
+
+
+
+	num_people = num_people / resgates.size();
+	for(unsigned int i = 0; i < resgates.size(); i++){
+		p = p + pow(vetor[i] - media,2); //agora quadrado aqui utilizando a função pow
+	}
+	total_people = num_people + sqrt(p/(resgates.size()-1)); //dividir por 10-1 que faltava, ou 9 se quiser simplificar
 
 	Veiculo* veiculo;
 	float distX,distY,dist_final, dist_final_aux;
-
-
-
 
 
 	for(int i = 0; i < INEM.size(); i++){
@@ -307,10 +306,19 @@ void Emergencia::pre_process(){
 		}
 	}
 	return veiculo;
-}*/
+}
+
+vector<float> Emergencia::calc_percentage(vector<float> raw_values) {
+	float max = *max_element(raw_values.begin(), raw_values.end());
+	vector< float> perc_values;
+	for(int i=0; i<raw_values.size(); i++) {
+		perc_values.push_back(raw_values[i]/max);
+	}
+
+}
 
 
-void Emergencia::getCall(int noID, int polFlag, int bombFlag, int inemFlag,
+/*void Emergencia::getCall(int noID, int polFlag, int bombFlag, int inemFlag,
 		bool gotoHospital) {
 
 	/*if (!myGraph.stronglyConnectedComponents()) {
@@ -320,7 +328,7 @@ void Emergencia::getCall(int noID, int polFlag, int bombFlag, int inemFlag,
 		return;
 	}*/
 
-	tempoinicial = std::chrono::system_clock::now();
+	/*tempoinicial = std::chrono::system_clock::now();
 
 	No localizacao { };
 	gv->setVertexIcon(noID, "../icons/dead.png");
@@ -404,7 +412,7 @@ void Emergencia::getCall(int noID, int polFlag, int bombFlag, int inemFlag,
 		drawPath(pathHospital, "green", "../icons/INEM.png");
 	}
 
-}
+}*/
 
 void Emergencia::displayGraph() {
 
