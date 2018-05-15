@@ -11,7 +11,6 @@
 #define SRC_EMERGENCIA_H_
 
 #include <vector>
-#include "Veiculo.h"
 #include "No.h"
 #include <sstream>
 #include <stdio.h>
@@ -20,6 +19,7 @@
 #include "Graph.h"
 #include "Rua.h"
 #include "Resgate.h"
+#include "Hospital.h"
 #include <math.h>
 #include <fstream>
 #include <map>
@@ -38,7 +38,7 @@ class Emergencia {
 private:
 	vector<Veiculo> INEM;
 	vector<Rua> ruas;
-	vector<No> hospitais;
+	Hospital hospital;
 	vector<Resgate> resgates;
 	Graph<No> myGraph;
 	GraphViewer *gv;
@@ -54,26 +54,37 @@ public:
 	Emergencia(bool FloydWarshall);
 	/**
 	 * Funcao que le os ficheiros txts que representam as arestas,os nos e as ruas do grafo myGraph que e preenchido a medida que os ficheiros sao lidos
-	 * Existe o ficheiro de nos que representa todos os nos do graph que nao representa nenhum local de grande importancia
 	 * Existe o ficheiro de arestas que representa todas as arestas do grafo, e os nos que de entrada e saida de cada aresta
-	 * Existe o ficheiro de hospitais que representam os nos onde se encontram hospitais. Cada hospital e guardado no vetor hospitais
-	 * Existe o ficheiros de INEMS que representa os nos onde se encontram as ambulancias. Cada ambulancia e guardada no vetor INEM
-	 * Existe o ficheiros de policias que representa os nos onde encontram policias. Cada policia e guardado no vetor de policias
-	 * Existe o ficheiro de bombeiros que representa os nos onde se encontram os bombeiros. Cada bombeiro e guardado no vetor bombeiros do objeto emergencia
 	 * Existe o ficheiro de ruas onde e representado o nome da rua e os ids dos nos que a constitui, cada rua e adicionada no vetor ruas do objeto emergencia
-	 * Existe o ficheiro de freguesias que representa os nos pertencentes a essa freguesia.
 	 */
 	void readStreets();
 
+	/*
+	 * Funcao que le o ficheiro de hospitais que representam os nos onde se encontram hospitais. Cada hospital e guardado no vetor hospitais
+	 * @param filename ->nome do ficheiro que contem a informação sobre os hospitais
+	 */
 	void readHospitals(string filename);
 
+	/*
+	 * Funcao que le o ficheiro de INEMS que representa os nos onde se encontram as ambulancias. Cada ambulancia e guardada no vetor INEM
+	 *  @param filename ->nome do ficheiro que contem a informação sobre os INEM
+	 */
 	void readInem(string filename);
 
+	/*
+	 * Funcao que le o ficheiro de Resgates que representa os nos onde se encontram os porntos a evacuar. Cada Resgate guardado no vetor
+	 *  @param filename ->nome do ficheiro que contem a informação sobre os pontos de Resgates
+	 */
 	void readResgate(string filename);
 
+	/**
+	 *  Funcao que le o ficheiro de nos que representa todos os nos do graph que nao representa nenhum local de grande importancia
+	 */
 	void readNodes();
 
 	void pre_process();
+
+	vector<Path> calc_dist_rescues(Veiculo veiculo);
 
 	Veiculo* ambulance_selection();
 	/**
@@ -153,17 +164,13 @@ public:
 	 */
 	bool verificarConetividade();
 
-	//vector<string> verificacaoExata(string user_string, string tipo, Freguesia fr);
-
 	bool pesquisaExata(string rua_utilizador,string rua_grafo);
 
 	multimap<int, string> pesquisaAproximada(string rua_utilizador, vector<string> &graph_vector);
 
-	//vector<string> verificacaoAproximada(string string_utilizador, string tipo, Freguesia fr);
-
 	void encontraVeiculos(vector<int> ids);
 
-	//vector<Freguesia> getFreguesias();
+	vector<float> calc_percentage(vector<float> raw_values);
 
 
 

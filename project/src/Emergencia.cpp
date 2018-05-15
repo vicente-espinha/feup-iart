@@ -34,7 +34,6 @@ Vertex<No>* Emergencia::findNo(int id) {
 void Emergencia::readStreets() {
 
 
-	ifstream inFile;
 	std::string line;
 
 	char token;
@@ -43,7 +42,7 @@ void Emergencia::readStreets() {
 	int NoID, idRua;
 
 	//Ler o ficheiro ruas.txt
-	inFile.open("../files/ruas.txt");
+	ifstream inFile("../files/ruas.txt");
 
 	if (!inFile) {
 		cerr << "Unable to open file ruas.txt";
@@ -112,7 +111,6 @@ void Emergencia::readStreets() {
 }
 
 void Emergencia::readHospitals(string filename){
-	ifstream inFile;
 	std::string line;
 
 	long long int idNo = 0;
@@ -122,7 +120,7 @@ void Emergencia::readHospitals(string filename){
 
 
 	//Ler o ficheiro hospitalNos.txt
-	inFile.open(filename);
+	ifstream inFile(filename);
 
 	if (!inFile) {
 		cerr << "Unable to open hospitals file";
@@ -135,9 +133,9 @@ void Emergencia::readHospitals(string filename){
 
 		linestream >> idNo >> token >> X >> token >> Y;
 
-		No n(idNo, X, Y);
-		myGraph.addVertex(n);
-		hospitais.push_back(n);
+		Hospital hospital(idNo, X, Y);
+		myGraph.addVertex(hospital);
+		this->hospital = hospital;
 
 	}
 
@@ -145,7 +143,6 @@ void Emergencia::readHospitals(string filename){
 }
 
 void Emergencia::readInem(string filename){
-	ifstream inFile;
 	std::string line;
 
 	long long int idNo = 0;
@@ -154,7 +151,7 @@ void Emergencia::readInem(string filename){
 	char token;
 
 	//Ler o ficheiro inemNos.txt
-		inFile.open(filename);
+	ifstream inFile(filename);
 
 		if (!inFile) {
 			cerr << "Unable to open Inem file";
@@ -180,7 +177,6 @@ void Emergencia::readInem(string filename){
 }
 
 void Emergencia::readResgate(string filename){
-	ifstream inFile;
 	std::string line;
 
 	long long int idNo = 0;
@@ -189,7 +185,7 @@ void Emergencia::readResgate(string filename){
 	char token;
 
 	//Ler o ficheiro inemNos.txt
-	inFile.open(filename);
+	ifstream inFile(filename);
 
 	if (!inFile) {
 		cerr << "Unable to open Resgate file";
@@ -256,11 +252,10 @@ void Emergencia::pre_process(){
 				resgates[i].add_outro_resgate(rescue);
 			}
 		}
-		for(unsigned int k=0; k<hospitais.size();k++){
-			myGraph.aStarPath(resgates[i],hospitais[k]);
-			Path rescue = myGraph.getPath(resgates[i],hospitais[k]);
+			myGraph.aStarPath(resgates[i],this->hospital);
+			Path rescue = myGraph.getPath(resgates[i],this->hospital);
 			resgates[i].set_hospital(rescue);
-		}
+
 	}
 }
 
@@ -268,7 +263,9 @@ Veiculo* Emergencia::ambulance_selection(){
 
 	float x = 0, y = 0;
 	vector<float> people;
-	int total_people = 0, temp_people;
+	int total_people = 0;
+	float temp_people;
+	bool exist = false;
 
 	for(unsigned int i = 0; i < resgates.size(); i++){
 
@@ -278,50 +275,102 @@ Veiculo* Emergencia::ambulance_selection(){
 		temp_people = resgates[i].getNPessoas();
 		total_people += temp_people;
 		people.push_back(temp_people);
+
+		if(resgates[i].getNPessoas() > 0){
+			exist = true;
+		}
 	}
 
+	if(!exist)
+		return NULL;
+
+	//centroide
 	x = x / resgates.size();
 	y = y / resgates.size();
 
+	float num_people_avg = total_people / resgates.size(),p = 0; //media de pessoas nos veiculos
 
-
-
-	num_people = num_people / resgates.size();
-	for(unsigned int i = 0; i < resgates.size(); i++){
-		p = p + pow(vetor[i] - media,2); //agora quadrado aqui utilizando a função pow
+	for(unsigned int i = 0; i < people.size(); i++){
+		p = p + pow(people[i] - num_people_avg,2);
 	}
-	total_people = num_people + sqrt(p/(resgates.size()-1)); //dividir por 10-1 que faltava, ou 9 se quiser simplificar
+	float total_people_aux = num_people_avg + sqrt(p/(resgates.size()-1)); //media + desvio padrao 10%
 
-	Veiculo* veiculo;
-	float distX,distY,dist_final, dist_final_aux;
+	float distX,distY,dist_final_aux,capacidade_aux;
+	vector<float> distances,times,capacidades;
 
-
-	for(int i = 0; i < INEM.size(); i++){
+	for(unsigned int i = 0; i < INEM.size(); i++){
 		distX = pow((INEM[i].getlocalNode().getX()-x), 2);
 		distY = pow((INEM[i].getlocalNode().getY()-y), 2);
+
 		dist_final_aux = sqrt(distX + distY);
-		if(dist_final > dist_final_aux) {
-			dist_final = dist_final_aux;
-			veiculo = &INEM[i];
-		}
+
+		capacidade_aux = abs(INEM[i].getCapacidade() - total_people_aux);
+
+		distances.push_back(dist_final_aux);
+		times.push_back(INEM[i].getDist());
+		capacidades.push_back(capacidade_aux);
 	}
-	return veiculo;
+
+	distances = this->calc_percentage(distances);  //50%
+	times = this->calc_percentage(times); //40%
+	capacidades = this->calc_percentage(capacidades);//10%
+
+	vector<float>aux;
+	float final_result;
+
+	for(unsigned int i = 0; i < INEM.size(); i++){
+		final_result = distances[i]*0.5 + times[i]*0.4 + capacidades[i]*0.1;
+
+		/*cout << "ID:" << INEM[i].getlocalNode().getID() << "\n";
+		cout << "Distancia:" << distances[i] << "\n";
+		cout << "Tempo percorrido:" << times[i] << "\n";
+		cout << "Capacidade:" << capacidades[i] << "\n\n";*/
+		aux.push_back(final_result);
+	}
+
+	int min_pos = distance(aux.begin(),min_element(aux.begin(),aux.end()));
+
+	return &INEM[min_pos];
 }
 
 vector<float> Emergencia::calc_percentage(vector<float> raw_values) {
 	float max = *max_element(raw_values.begin(), raw_values.end());
+	if(max == 0)
+		max = 1;
 	vector< float> perc_values;
-	for(int i=0; i<raw_values.size(); i++) {
+	for(unsigned int i=0; i<raw_values.size(); i++) {
 		perc_values.push_back(raw_values[i]/max);
 	}
+	return perc_values;
 
+}
+
+vector<Path> Emergencia::calc_dist_rescues(Veiculo veiculo){
+	No node = veiculo.getlocalNode();
+	vector<Path> paths;
+	if(hospital == node){
+		paths = hospital.get_rescues();
+		if(!paths.empty())
+			return paths;
+	}
+	for(unsigned int i=0; i<resgates.size(); i++) {
+		if(resgates[i].getNPessoas() > 0){
+			myGraph.aStarPath(node,resgates[i]);
+			Path rescue = myGraph.getPath(node,resgates[i]);
+			paths.push_back(rescue);
+			if(hospital == node) {
+				hospital.add_new_rescue(rescue);
+			}
+		}
+	}
+	return paths;
 }
 
 
 /*void Emergencia::getCall(int noID, int polFlag, int bombFlag, int inemFlag,
 		bool gotoHospital) {
 
-	/*if (!myGraph.stronglyConnectedComponents()) {
+	if (!myGraph.stronglyConnectedComponents()) {
 		cout << "Nao e possivel calcular a sua chamada por invalidade do mapa"
 				<< endl;
 		getchar();
@@ -473,9 +522,9 @@ void Emergencia::colorNodes() {
 			gv->setVertexIcon((*it).getlocalNode().getID(), "../icons/INEM.png");
 
 	}
-	for (unsigned int i = 0; i < this->hospitais.size(); i++) {
-		gv->setVertexIcon(hospitais.at(i).getID(), "../icons/hospital.png");
-	}
+
+	gv->setVertexIcon(hospital.getID(), "../icons/hospital.png");
+
 
 	vector<Resgate>::iterator itresgate = this->resgates.begin();
 	for (; itresgate != resgates.end(); itresgate++) {
@@ -843,11 +892,11 @@ void Emergencia::encontraVeiculos(vector<int> ids) {
 	bool bomb = false;
 	bool pol = false;
 	vector<int> numInem;
-	vector<int> numPolicias;
+	vector<int> numPolicias = vector<int>();
 	vector<int> numBombeiros;
 
 
-	for (unsigned int i = 0; i < INEM.size(); i++) {
+	for(unsigned int i = 0; i < INEM.size(); i++) {
 		for (unsigned int a = 0; a < ids.size(); a++) {
 			if (INEM.at(i).getlocalNode().getID() == ids.at(a)) {
 				in = true;

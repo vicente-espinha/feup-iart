@@ -13,6 +13,7 @@
 #include <math.h>
 #include <stack>
 #include "Path.h"
+#include "Veiculo.h"
 
 using namespace std;
 
@@ -213,6 +214,7 @@ public:
 	void getfloydWarshallPathAux(int index1, int index2, vector<T> & res);
 	vector< Edge<T> > getEdges(vector<T> nodes);
 	void aStarPath(const T &init, const T &final);
+	void aStarPathComplex(const T &init, const T &final, const Veiculo &vehicle);
 
 
 };
@@ -858,11 +860,11 @@ template <class T>
 vector< Edge<T> > Graph<T>::getEdges(vector<T> nodes){
 
 	vector< Edge<T> > edges;
-	for(int i=0; i<nodes.size()-1; i++)
+	for(unsigned int i=0; i<nodes.size()-1; i++)
 	{
 		vector< Edge<T> > adjs = getVertex(nodes[i])->adj;
 
-		for(int j=0; j<adjs.size(); j++){
+		for(unsigned int j=0; j<adjs.size(); j++){
 			if(adjs[j].dest->info == nodes[i+1]){
 
 				edges.push_back(adjs[j]);
@@ -929,6 +931,69 @@ void Graph<T>::aStarPath(const T &init, const T &final) {
 			}
 		}
 	}
+}
+
+template<class T>
+void Graph<T>::aStarPathComplex(const T &init, const T &final,const Veiculo &vehicle){
+	for(unsigned int i = 0; i < vertexSet.size(); i++) {
+			vertexSet[i]->path = NULL;
+			vertexSet[i]->dist = INT_INFINITY;
+			vertexSet[i]->processing = false;
+		}
+
+		Vertex<T>* vinit = getVertex(init);
+		Vertex<T>* vfinal = getVertex(final);
+
+		int distX = pow((vinit->info.getX() - vfinal->info.getX()), 2);
+		int distY = pow((vinit->info.getY() - vfinal->info.getY()), 2);
+		vinit->heuristic = sqrt(distX + distY);
+
+		vinit->dist = 0;
+
+		vector< Vertex<T>* > pq;
+		pq.push_back(vinit);
+
+		make_heap(pq.begin(), pq.end());
+
+		Vertex<T>* v;
+		while( !pq.empty() ) {
+
+			v = pq.front();
+			pop_heap(pq.begin(), pq.end());
+			pq.pop_back();
+
+			for(unsigned int i = 0; i < v->adj.size(); i++) {
+				Vertex<T>* w = v->adj[i].dest;
+				//v->adj[i].setVisited(true);
+
+
+
+				distX = pow((vfinal->info.getX() - w->info.getX()), 2);
+				distY = pow((vfinal->info.getY() - w->info.getY()), 2);
+				float distance = sqrt(distX + distY);
+				float capacity = vehicle->getCapacity();
+
+				if(
+
+				w->heuristic = ;
+
+				if((v->dist + v->adj[i].weight + v->heuristic) < w->dist ) {
+
+					w->dist = v->dist + v->adj[i].weight;
+					w->path = v;
+
+					//se já estiver na lista, apenas a actualiza
+					if(!w->processing)
+					{
+						w->processing = true;
+						pq.push_back(w);
+					}
+
+					make_heap (pq.begin(),pq.end(),vertex_greater_than<T>());
+				}
+			}
+		}
+
 }
 
 

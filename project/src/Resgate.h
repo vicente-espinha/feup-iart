@@ -16,7 +16,6 @@ const float FLOAT_INFINITY = numeric_limits<float>::max();
 
 class Resgate: public No {
 private:
-	unsigned int nPessoas;
 	vector<Path> outros_resgates;
 	Path hospital;
 
@@ -25,8 +24,6 @@ public:
 	 * Construtor default de um objeto do tipo resgate
 	 */
 	Resgate(int id, int x, int y, unsigned int nPessoas);
-
-	unsigned int getNPessoas();
 
 	bool decNPessoas(unsigned int nPessoas);
 

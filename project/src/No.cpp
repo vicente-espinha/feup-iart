@@ -10,11 +10,19 @@
 
 using namespace std;
 
-No::No(int id, int x, int y) {
+No::No(int id, int x, int y, unsigned int nPessoas) {
 	this->id = id;
 	this->x = x;
 	this->y =y;
+	this->num_people = 0;
+}
 
+bool No::dec_num_people(unsigned int n_people){
+	if(this->num_people-n_people < 0)
+		return false;
+
+	this->num_people = n_people;
+	return true;
 }
 
 No::No(int id)
@@ -32,12 +40,7 @@ int No::getID() const{
 
 bool No::operator==(const No &no1) const
 {
-	if( this->id == no1.getID())
-	{
-
-		return true;
-	}
-	return false;
+	return this->id == no1.getID();
 }
 int No::getX() const{
 	return x;
@@ -51,4 +54,8 @@ int No::getY() const{
 bool No::operator<(const No &no1) const
 {
 	return this->getID() < no1.getID();
+}
+
+unsigned int No::getNPessoas(){
+	return this->num_people;
 }

@@ -4,6 +4,7 @@
 Veiculo::Veiculo(No local, unsigned int capacidade) : disponivel(0){
 	this->local = local;
 	this->capacidade = capacidade;
+	this->dist = 0;
 }
 
 Veiculo::~Veiculo() {
@@ -47,10 +48,10 @@ bool Veiculo::decCapacidade(unsigned int lugares_ocupados){
 	return true;
 }
 
-float Veiculo::get_dist(){
+float Veiculo::getDist(){
 	return this->dist;
 }
 
-void Veiculo::inc_dist(float dist){
+void Veiculo::incDist(float dist){
 	this->dist +=dist;
 }

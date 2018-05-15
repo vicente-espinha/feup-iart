@@ -277,8 +277,13 @@ void tipoEmergencia(Emergencia &em)
 
 			case 0: {
 
+				Veiculo* veiculo = em.ambulance_selection();
+				cin.get();
 
-				emLevel(em,1);
+				cout << "veiculo :" << veiculo->getlocalNode().getID()<< "\n\n";
+
+				cin.get();
+				//emLevel(em,1);
 				running = false;
 				system("CLS");
 				break;

@@ -2,22 +2,10 @@
 
 using namespace std;
 
-Resgate::Resgate(int id, int x, int y, unsigned int nPessoas): No(id, x, y){
-	this->nPessoas = nPessoas;
+Resgate::Resgate(int id, int x, int y, unsigned int nPessoas): No(id, x, y,nPessoas){
 	this->hospital = Path(FLOAT_INFINITY);
 }
 
-unsigned int Resgate::getNPessoas(){
-	return this->nPessoas;
-}
-
-bool Resgate::decNPessoas(unsigned int nPessoas){
-	if(this->nPessoas-nPessoas < 0)
-		return false;
-
-	this->nPessoas = nPessoas;
-	return true;
-}
 
 
 void Resgate::add_outro_resgate(Path new_rescue) {

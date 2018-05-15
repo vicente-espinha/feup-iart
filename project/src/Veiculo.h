@@ -29,7 +29,7 @@ public:
 	/**
 	 * Construtor default de um veiculo
 	 */
-	Veiculo() {};
+	Veiculo(){};
 	/**
 	 * Um veiculo e representado unicamente pelo local em que se encontra (No especifico) e pela sua capacidade.Cada veiculo pode
 	 * em qualquer altura estar ou nao disponivel
@@ -79,9 +79,9 @@ public:
 	 */
 	bool decCapacidade(unsigned int lugares_ocupados);
 
-	float get_dist();
+	float getDist();
 
-	void inc_dist(float dist);
+	void incDist(float dist);
 
 
 };

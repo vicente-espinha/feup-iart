@@ -15,7 +15,7 @@ private:
 	int id;
 	int x;
 	int y;
-	unsigned int nPessoas;
+	unsigned int num_people;
 public:
 	/**
 	 * Construtor default de um objeto do tipo no
@@ -34,7 +34,7 @@ public:
 	 * @param x representacao da posicao nos eixos xx do novo No
 	 * @param y representacao da posicao nos eixos yy do novo No
 	 */
-	No(int id, int x, int y);
+	No(int id, int x, int y, unsigned int nPessoas);
 	/**
 	 * Destrutor default de um No
 	 */
@@ -67,6 +67,10 @@ public:
 	 * @return a variavel y do No
 	 */
 	int getY() const;
+
+	unsigned int getNPessoas();
+
+	bool dec_num_people(unsigned int n_people);
 };
 
 #endif /* SRC_NO_H_ */

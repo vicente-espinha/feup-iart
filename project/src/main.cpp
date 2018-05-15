@@ -10,10 +10,8 @@
 
 int main()
 {
-
 	Emergencia emergencia(true);
 	menu_principal(emergencia);
-
 
 	return 0;
 }
