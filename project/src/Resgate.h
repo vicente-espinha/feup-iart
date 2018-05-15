@@ -2,29 +2,41 @@
 #define SRC_RESGATE_H_
 
 #include <iostream>
+#include <utility>
 #include <string>
-#include "Graph.h"
 #include "No.h"
+#include "Path.h"
+#include <limits>
+#include <cstddef>
+#include <vector>
 
-class Resgate {
+using namespace std;
+
+const float FLOAT_INFINITY = numeric_limits<float>::max();
+
+class Resgate: public No {
 private:
-	No local;
 	unsigned int nPessoas;
+	vector<Path> outros_resgates;
+	Path hospital;
+
 public:
 	/**
 	 * Construtor default de um objeto do tipo resgate
 	 */
-	Resgate(){};
-
-	Resgate(No local, unsigned int nPessoas);
-
-	No getlocalNode() const;
-
-	void setlocalNode(No novoLocal);
+	Resgate(int id, int x, int y, unsigned int nPessoas);
 
 	unsigned int getNPessoas();
 
 	bool decNPessoas(unsigned int nPessoas);
+
+	void add_outro_resgate(Path new_rescue);
+
+	void set_hospital(Path new_hospital);
+
+	Path get_hospital();
+
+	bool operator!=(Resgate &rhs);
 
 };
 

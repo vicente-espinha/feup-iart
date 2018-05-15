@@ -2,17 +2,9 @@
 
 using namespace std;
 
-Resgate::Resgate(No local, unsigned int nPessoas){
-	this->local = local;
+Resgate::Resgate(int id, int x, int y, unsigned int nPessoas): No(id, x, y){
 	this->nPessoas = nPessoas;
-}
-
-No Resgate::getlocalNode() const{
-	return this->local;
-}
-
-void Resgate::setlocalNode(No novoLocal){
-	this->local = novoLocal;
+	this->hospital = Path(FLOAT_INFINITY);
 }
 
 unsigned int Resgate::getNPessoas(){
@@ -25,5 +17,24 @@ bool Resgate::decNPessoas(unsigned int nPessoas){
 
 	this->nPessoas = nPessoas;
 	return true;
+}
 
+
+void Resgate::add_outro_resgate(Path new_rescue) {
+	this->outros_resgates.push_back(new_rescue);
+}
+
+void Resgate::set_hospital(Path new_hospital) {
+
+	if(this->hospital.get_dist() > new_hospital.get_dist()){
+		this->hospital = new_hospital;
+	}
+}
+
+Path Resgate::get_hospital(){
+	return this->hospital;
+}
+
+bool Resgate::operator!=(Resgate &rhs){
+	return this->getX() != rhs.getX() && this->getY() != rhs.getY();
 }

@@ -33,19 +33,17 @@ Vertex<No>* Emergencia::findNo(int id) {
 
 void Emergencia::readStreets() {
 
+
 	ifstream inFile;
 	std::string line;
 
-	long long int idNo = 0;
-	float X = 0;
-	float Y = 0;
 	char token;
 
 	string nomeRua, twoWays;
 	int NoID, idRua;
 
 	//Ler o ficheiro ruas.txt
-	inFile.open("ruas.txt");
+	inFile.open("../files/ruas.txt");
 
 	if (!inFile) {
 		cerr << "Unable to open file ruas.txt";
@@ -103,16 +101,13 @@ void Emergencia::readStreets() {
 			}
 		}
 
-		//TODO print
-		cout<<"RUAS";
-		for(int i=0; i<ruas.size(); i++) {
-			cout<< ruas[i].getNome()<<endl;
-		}
-		cin.get();
-
 	}
 
 	inFile.close();
+
+	for(unsigned int i=0; i<ruas.size(); i++) {
+		cout<<"RUA: "<<ruas[i].getNome()<<"\n";
+	}
 
 }
 
@@ -147,13 +142,6 @@ void Emergencia::readHospitals(string filename){
 	}
 
 	inFile.close();
-
-	//TODO print
-	 cout << "hospitais";
-	for(int j = 0; j < hospitais.size();j++){
-		cout << hospitais[j].getID() <<"\n";
-	}
-	cin.get();
 }
 
 void Emergencia::readInem(string filename){
@@ -189,14 +177,6 @@ void Emergencia::readInem(string filename){
 		}
 
 		inFile.close();
-
-
-		//TODO print
-		 cout << "INEM";
-		for(int j = 0; j < INEM.size();j++){
-			cout << INEM[j].getlocalNode().getID() <<"    "<<INEM[j].getCapacidade()<<"\n";
-		}
-		cin.get();
 }
 
 void Emergencia::readResgate(string filename){
@@ -223,36 +203,27 @@ void Emergencia::readResgate(string filename){
 
 		linestream >> idNo >> token >> X >> token >> Y >> token >> npessoas_resgate;
 
-		No n(idNo, X, Y);
 
-		myGraph.addVertex(n);
-		Resgate resgate(n,npessoas_resgate);
+		Resgate resgate(idNo, X, Y ,npessoas_resgate);
+		myGraph.addVertex(resgate);
 		resgates.push_back(resgate);
 
 	}
 
 	inFile.close();
-
-
-	//TODO print
-	 cout << "RESGATE";
-	for(int j = 0; j < resgates.size();j++){
-		cout << resgates[j].getlocalNode().getID() <<"    "<<resgates[j].getNPessoas()<<"\n";
-	}
-	cin.get();
 }
 
 void Emergencia::readNodes(){
-	ifstream inFile;
-	std::string line;
+	ifstream inFile { };
+	std::string line { };
 
-	long long int idNo = 0;
+	long long int idNo { 0 };
 	float X = 0;
 	float Y = 0;
-	char token;
+	char token { };
 
 	//Ler o ficheiro nosNormals.txt
-	inFile.open("nos.txt");
+	inFile.open("../files/nos.txt");
 
 	if (!inFile) {
 		cerr << "Unable to open file nos.txt";
@@ -272,6 +243,73 @@ void Emergencia::readNodes(){
 	inFile.close();
 }
 
+
+
+void Emergencia::pre_process(){
+
+	for(unsigned int i=0; i<resgates.size(); i++) {
+		for(unsigned int j=0; j<resgates.size();j++){
+			if(resgates[i] != resgates[j]){
+				myGraph.aStarPath(resgates[i],resgates[j]);
+				//myGraph.dijkstraShortestPath(resgates[i]);
+				Path rescue = myGraph.getPath(resgates[i],resgates[j]);
+				resgates[i].add_outro_resgate(rescue);
+			}
+		}
+		for(unsigned int k=0; k<hospitais.size();k++){
+			myGraph.aStarPath(resgates[i],hospitais[k]);
+			Path rescue = myGraph.getPath(resgates[i],hospitais[k]);
+			resgates[i].set_hospital(rescue);
+		}
+	}
+}
+
+/*Veiculo* Emergencia::ambulance_selection(){
+
+	float x = 0, y = 0, nPessoas = 0;
+	vector<pair<vector<No>,float>> outros_resgates;
+
+	for(int i = 0; i < resgates.size(); i++){
+
+		x += resgates[i].getX();
+		y += resgates[i].getY();
+
+
+		nPessoas += resgates[i].getNPessoas();
+		outros_resgates = resgates[i].getOutros_Resgatesvector();
+
+		for(int j = 0 ; j < resgates.size();j){
+
+			if(resgates[i] != resgates[j]){
+				if(find(.begin())){
+			}
+		}
+	}
+
+	x = x / resgates.size();
+	y = y / resgates.size();
+	nPessoas = nPessoas / resgates.size();
+
+	Veiculo* veiculo;
+	float distX,distY,dist_final, dist_final_aux;
+
+
+
+
+
+	for(int i = 0; i < INEM.size(); i++){
+		distX = pow((INEM[i].getlocalNode().getX()-x), 2);
+		distY = pow((INEM[i].getlocalNode().getY()-y), 2);
+		dist_final_aux = sqrt(distX + distY);
+		if(dist_final > dist_final_aux) {
+			dist_final = dist_final_aux;
+			veiculo = &INEM[i];
+		}
+	}
+	return veiculo;
+}*/
+
+
 void Emergencia::getCall(int noID, int polFlag, int bombFlag, int inemFlag,
 		bool gotoHospital) {
 
@@ -284,8 +322,8 @@ void Emergencia::getCall(int noID, int polFlag, int bombFlag, int inemFlag,
 
 	tempoinicial = std::chrono::system_clock::now();
 
-	No localizacao;
-	gv->setVertexIcon(noID, "ajuda1.png");
+	No localizacao { };
+	gv->setVertexIcon(noID, "../icons/dead.png");
 	for (unsigned int i = 0; i < myGraph.getVertexSet().size(); i++) {
 		if (myGraph.getVertexSet()[i]->getInfo().getID() == noID)
 			localizacao = myGraph.getVertexSet()[i]->getInfo();
@@ -357,13 +395,13 @@ void Emergencia::getCall(int noID, int polFlag, int bombFlag, int inemFlag,
 	tempofinal = std::chrono::system_clock::now();
 	cout << endl << "Tempo Final: " << system_clock::to_time_t(tempofinal) << endl;
 	for (unsigned int i = 0; i < pathsINEM.size(); i++)
-		this->drawPath(pathsINEM[i], "green", "INEM.png");
+		this->drawPath(pathsINEM[i], "green", "../icons/INEM.png");
 	for (unsigned int i = 0; i < pathsBombeiros.size(); i++)
-		this->drawPath(pathsBombeiros[i], "red", "bombeiro.png");
+		this->drawPath(pathsBombeiros[i], "red", "../icons/bombeiro.png");
 	for (unsigned int i = 0; i < pathsPolicia.size(); i++)
-		this->drawPath(pathsPolicia[i], "blue", "policia.png");
+		this->drawPath(pathsPolicia[i], "blue", "../icons/policia.png");
 	if (pathHospital.size() > 0) {
-		drawPath(pathHospital, "green", "INEM.png");
+		drawPath(pathHospital, "green", "../icons/INEM.png");
 	}
 
 }
@@ -373,7 +411,7 @@ void Emergencia::displayGraph() {
 	gv->createWindow(600, 600);
 
 	gv->defineEdgeColor("black");
-	gv->defineVertexIcon("normal.png");
+	gv->defineVertexIcon("../icons/normal.png");
 	gv->defineEdgeCurved(false);
 
 	vector<Vertex<No>*> vertexSet = myGraph.getVertexSet();
@@ -424,18 +462,18 @@ void Emergencia::colorNodes() {
 	for (; it != INEM.end(); it++) {
 		(*it).decDisponibilidade();
 		if ((*it).getDisponibilidade() == 0)
-			gv->setVertexIcon((*it).getlocalNode().getID(), "INEM.png");
+			gv->setVertexIcon((*it).getlocalNode().getID(), "../icons/INEM.png");
 
 	}
 	for (unsigned int i = 0; i < this->hospitais.size(); i++) {
-		gv->setVertexIcon(hospitais.at(i).getID(), "hospital.png");
+		gv->setVertexIcon(hospitais.at(i).getID(), "../icons/hospital.png");
 	}
 
 	vector<Resgate>::iterator itresgate = this->resgates.begin();
 	for (; itresgate != resgates.end(); itresgate++) {
 		//TODO WHAT??
 		//(*it).decDisponibilidade();
-		gv->setVertexIcon((*itresgate).getlocalNode().getID(), "dead.png");
+		gv->setVertexIcon((*itresgate).getID(), "../icons/dead.png");
 
 	}
 
@@ -512,7 +550,7 @@ void Emergencia::drawPath(vector<Edge<No> > &edgepath, string color,
 		gv->rearrange();
 		Sleep(1000);
 		gv->setVertexIcon(edgepath.at(i).getDest()->getInfo().getID(),
-				"normal.png");
+				"../icons/normal.png");
 		gv->rearrange();
 	}
 
@@ -596,7 +634,7 @@ void Emergencia::resetGV() {
 
 	vector<Vertex<No>*> aux = myGraph.getVertexSet();
 	for (unsigned int i = 0; i < aux.size(); i++) {
-		gv->setVertexIcon(aux.at(i)->getInfo().getID(), "normal.png");
+		gv->setVertexIcon(aux.at(i)->getInfo().getID(), "../icons/normal.png");
 	}
 	this->colorNodes();
 
@@ -617,7 +655,8 @@ void Emergencia::writeRuas() {
 		vector<Edge<No> > aux = myGraph.getEdges(path);
 		path.clear();
 		for (unsigned int a = 0; a < aux.size(); a++) {
-			gv->setEdgeLabel(aux.at(a).getID(), ruas.at(i).getNome());
+			//gv->setEdgeLabel(aux.at(a).getID(), ruas.at(i).getNome());
+			gv->setEdgeLabel(aux.at(a).getID(), to_string(aux.at(a).getWeight()));
 		}
 		aux.clear();
 	}
@@ -625,8 +664,7 @@ void Emergencia::writeRuas() {
 }
 
 bool Emergencia::verificarConetividade() {
-	return true;
-	//return myGraph.stronglyConnectedComponents();
+	return myGraph.stronglyConnectedComponents();
 }
 
 /*

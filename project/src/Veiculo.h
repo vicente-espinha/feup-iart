@@ -22,6 +22,7 @@ private:
 	unsigned int disponivel;
 	No local;
 	unsigned int capacidade;
+	float dist;
 
 public:
 
@@ -77,6 +78,10 @@ public:
 	 * @return retorna verdadeiro se após o numero de lugares ocupados pretendido, a ambulancia nao fica sobrelotada
 	 */
 	bool decCapacidade(unsigned int lugares_ocupados);
+
+	float get_dist();
+
+	void inc_dist(float dist);
 
 
 };

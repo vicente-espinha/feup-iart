@@ -1,9 +1,3 @@
-/*
- * Veiculo.cpp
- *
- *  Created on: 28/03/2017
- *      Author: up201503344
- */
 
 #include "Veiculo.h"
 
@@ -51,4 +45,12 @@ bool Veiculo::decCapacidade(unsigned int lugares_ocupados){
 	else
 		this->capacidade = this->capacidade-lugares_ocupados;
 	return true;
+}
+
+float Veiculo::get_dist(){
+	return this->dist;
+}
+
+void Veiculo::inc_dist(float dist){
+	this->dist +=dist;
 }

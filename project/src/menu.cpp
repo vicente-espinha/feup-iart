@@ -111,12 +111,13 @@ void menu_principal(Emergencia &em)
 
 			case 0: {
 
-				em.readHospitals("hospitais.txt");
-				em.readInem("INEM.txt");
-				em.readResgate("resgate.txt");
+				em.readHospitals("../files/hospitais.txt");
+				em.readInem("../files/INEM.txt");
+				em.readResgate("../files/resgate.txt");
 				em.readNodes();
 				em.readStreets();
 				em.displayGraph();
+				em.pre_process();
 				gotoXY(20,16);
 				tipoEmergencia(em);
 				break;

@@ -72,6 +72,10 @@ public:
 	void readResgate(string filename);
 
 	void readNodes();
+
+	void pre_process();
+
+	Veiculo* ambulance_selection();
 	/**
 	 * Com o id, e com o numero de cada tipo de veiculo a ser chamada, esta funcao calcula quais os melhores veiculos a acionar
 	 * e qual o caminho que estes irao percorrer

@@ -10,7 +10,10 @@
 #include <climits>
 #include <cstddef>
 #include <iostream>
+#include <math.h>
 #include <stack>
+#include "Path.h"
+
 using namespace std;
 
 template <class T> class Edge;
@@ -31,6 +34,8 @@ class Vertex {
 	int vectorPos;
 	bool visited;
 	bool processing;
+	float heuristic;
+	float accCost;
 	void addEdge(int idAresta, Vertex<T> *dest, double w);
 	bool removeEdgeTo(Vertex<T> *d);
 
@@ -195,19 +200,20 @@ public:
 	int getNumCycles();
 	bool isDAG();
 	vector<T> topologicalOrder();
-	vector<T> getPath(const T &origin, const T &dest);
+	Path getPath(const T &origin, const T &dest);
 	vector <T> getResourcesToPath(const T &origin, const T &dest,vector<Edge<T> > &EdgestoPaint);
 
 	void unweightedShortestPath(const T &v);
+	void bellmanFordShortestPath(const T &s);
+	void dijkstraShortestPath(const T &s);
+	void floydWarshallShortestPath();
+	int getfloydWarshallweight(int vOrigIndex, int vDestIndex);
+	int edgeCost(int vOrigIndex, int vDestIndex);
+	vector<T> getfloydWarshallPath(const T &origin, const T &dest);
+	void getfloydWarshallPathAux(int index1, int index2, vector<T> & res);
+	vector< Edge<T> > getEdges(vector<T> nodes);
+	void aStarPath(const T &init, const T &final);
 
-		void bellmanFordShortestPath(const T &s);
-		void dijkstraShortestPath(const T &s);
-		void floydWarshallShortestPath();
-		int getfloydWarshallweight(int vOrigIndex, int vDestIndex);
-		int edgeCost(int vOrigIndex, int vDestIndex);
-		vector<T> getfloydWarshallPath(const T &origin, const T &dest);
-		void getfloydWarshallPathAux(int index1, int index2, vector<T> & res);
-		vector< Edge<T> > getEdges(vector<T> nodes);
 
 };
 
@@ -618,30 +624,30 @@ void Graph<T>::getPathTo(Vertex<T> *dest, list<T> &res) {
 }
 
 template<class T>
-vector<T> Graph<T>::getPath(const T &origin, const T &dest){
+Path Graph<T>::getPath(const T &origin, const T &dest){
 
 
-	list<T> buffer;
+	list<T*> buffer;
 	Vertex<T>* v = getVertex(dest);
+	float final_dist = v->getDist();
 
 	vector< Edge<T> > edges;
 
-
-
-	buffer.push_front(v->info);
+	buffer.push_front(&v->info);
 	while (! (v->path->info == origin )) {
 
 		v = v->path;
-		buffer.push_front(v->info);
+		buffer.push_front(&v->info);
 	}
 
-	buffer.push_front(v->path->info);
-	vector<T> res;
-		while( !buffer.empty() ) {
-			res.push_back( buffer.front() );
-			buffer.pop_front();
-		}
-		return res;
+	buffer.push_front(&v->path->info);
+	vector<T*> res;
+	while( !buffer.empty() ) {
+		res.push_back( buffer.front() );
+		buffer.pop_front();
+	}
+	Path path = Path(res, final_dist);
+	return path;
 }
 
 template<class T>
@@ -809,32 +815,7 @@ int Graph<T>::edgeCost(int vOrigIndex, int vDestIndex)
 }
 
 
-/*void printSquareArray(int ** arr, unsigned int size)
-{
-	for(unsigned int k = 0; k < size; k++)
-	{
-		if(k == 0)
-		{
-			cout <<  "   ";
-			for(unsigned int i = 0; i < size; i++)
-				cout <<  " " << i+1 << " ";
-			cout << endl;
-		}
 
-		for(unsigned int i = 0; i < size; i++)
-		{
-			if(i == 0)
-				cout <<  " " << k+1 << " ";
-
-			if(arr[k][i] == INT_INFINITY)
-				cout << " - ";
-			else
-				cout <<  " " << arr[k][i] << " ";
-		}
-
-		cout << endl;
-	}
-}*/
 
 
 template<class T>
@@ -892,6 +873,64 @@ vector< Edge<T> > Graph<T>::getEdges(vector<T> nodes){
 	}
 	return edges;
 }
+
+
+template<class T>
+void Graph<T>::aStarPath(const T &init, const T &final) {
+
+	for(unsigned int i = 0; i < vertexSet.size(); i++) {
+		vertexSet[i]->path = NULL;
+		vertexSet[i]->dist = INT_INFINITY;
+		vertexSet[i]->processing = false;
+	}
+
+	Vertex<T>* vinit = getVertex(init);
+	Vertex<T>* vfinal = getVertex(final);
+
+	int distX = pow((vinit->info.getX() - vfinal->info.getX()), 2);
+	int distY = pow((vinit->info.getY() - vfinal->info.getY()), 2);
+	vinit->heuristic = sqrt(distX + distY);
+
+	vinit->dist = 0;
+
+	vector< Vertex<T>* > pq;
+	pq.push_back(vinit);
+
+	make_heap(pq.begin(), pq.end());
+
+	Vertex<T>* v;
+	while( !pq.empty() ) {
+
+		v = pq.front();
+		pop_heap(pq.begin(), pq.end());
+		pq.pop_back();
+
+		for(unsigned int i = 0; i < v->adj.size(); i++) {
+			Vertex<T>* w = v->adj[i].dest;
+			//v->adj[i].setVisited(true);
+
+			distX = pow((vfinal->info.getX() - w->info.getX()), 2);
+			distY = pow((vfinal->info.getY() - w->info.getY()), 2);
+			w->heuristic = sqrt(distX + distY);
+
+			if((v->dist + v->adj[i].weight + v->heuristic) < w->dist ) {
+
+				w->dist = v->dist + v->adj[i].weight;
+				w->path = v;
+
+				//se já estiver na lista, apenas a actualiza
+				if(!w->processing)
+				{
+					w->processing = true;
+					pq.push_back(w);
+				}
+
+				make_heap (pq.begin(),pq.end(),vertex_greater_than<T>());
+			}
+		}
+	}
+}
+
 
 #endif /* GRAPH_H_ */
 
