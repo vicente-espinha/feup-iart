@@ -24,8 +24,6 @@
 #include <fstream>
 #include <map>
 #include <algorithm>
-#include "utils.h"
-#include "StringSearch.h"
 #include <ratio>
 #include <chrono>
 #include <ctime>
@@ -61,19 +59,19 @@ public:
 
 	/*
 	 * Funcao que le o ficheiro de hospitais que representam os nos onde se encontram hospitais. Cada hospital e guardado no vetor hospitais
-	 * @param filename ->nome do ficheiro que contem a informação sobre os hospitais
+	 * @param filename ->nome do ficheiro que contem a informaï¿½ï¿½o sobre os hospitais
 	 */
 	void readHospitals(string filename);
 
 	/*
 	 * Funcao que le o ficheiro de INEMS que representa os nos onde se encontram as ambulancias. Cada ambulancia e guardada no vetor INEM
-	 *  @param filename ->nome do ficheiro que contem a informação sobre os INEM
+	 *  @param filename ->nome do ficheiro que contem a informaï¿½ï¿½o sobre os INEM
 	 */
 	void readInem(string filename);
 
 	/*
 	 * Funcao que le o ficheiro de Resgates que representa os nos onde se encontram os porntos a evacuar. Cada Resgate guardado no vetor
-	 *  @param filename ->nome do ficheiro que contem a informação sobre os pontos de Resgates
+	 *  @param filename ->nome do ficheiro que contem a informaï¿½ï¿½o sobre os pontos de Resgates
 	 */
 	void readResgate(string filename);
 
@@ -83,6 +81,8 @@ public:
 	void readNodes();
 
 	void pre_process();
+
+	Path path_vehicle(Veiculo * vehicle);
 
 	vector<Path> calc_dist_rescues(Veiculo veiculo);
 
@@ -132,10 +132,10 @@ public:
 	 */
 	void resetGV();
 	/**
-	 * Pinta as arestas contidas no vetor edgepath com a cor "color" e preenche os respetivos vértices de destino com o icone "icon", dando reset ao vértice de origem.
-	 * @param edgepath Vetor que contém as arestas a serem modificadas
+	 * Pinta as arestas contidas no vetor edgepath com a cor "color" e preenche os respetivos vï¿½rtices de destino com o icone "icon", dando reset ao vï¿½rtice de origem.
+	 * @param edgepath Vetor que contï¿½m as arestas a serem modificadas
 	 * @param color com com a qual devem ser pintadas as arestas
-	 * @param icon icon que ficará no vértice de destino das arestas pintadas
+	 * @param icon icon que ficarï¿½ no vï¿½rtice de destino das arestas pintadas
 	 */
 	void drawPath(vector<Edge<No> > &edgepath,string color,string icon);
 	/**
@@ -163,10 +163,6 @@ public:
 	 * A funcao que verifica a conetividade do grafo
 	 */
 	bool verificarConetividade();
-
-	bool pesquisaExata(string rua_utilizador,string rua_grafo);
-
-	multimap<int, string> pesquisaAproximada(string rua_utilizador, vector<string> &graph_vector);
 
 	void encontraVeiculos(vector<int> ids);
 

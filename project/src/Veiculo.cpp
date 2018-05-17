@@ -1,10 +1,11 @@
 
 #include "Veiculo.h"
 
-Veiculo::Veiculo(No local, unsigned int capacidade) : disponivel(0){
+Veiculo::Veiculo(No local, unsigned int capacidade){
 	this->local = local;
 	this->capacidade = capacidade;
 	this->dist = 0;
+	this->disponivel = capacidade;
 }
 
 Veiculo::~Veiculo() {
@@ -31,21 +32,22 @@ void Veiculo::setDisponibilidade(unsigned int value)
 	this->disponivel = value;
 }
 
-void Veiculo::decDisponibilidade(){
-	if(disponivel > 0)
-		disponivel--;
+unsigned int Veiculo::decDisponibilidade(unsigned int lugares_ocupados){
+
+	if(this->disponivel == 0){
+		return 0;
+	}else if(this->disponivel-lugares_ocupados < 0){
+		unsigned int new_lugares_ocupados = lugares_ocupados - this->disponivel;
+		this->disponivel = 0;
+		return new_lugares_ocupados;
+	}else{
+		this->disponivel = this->disponivel-lugares_ocupados;
+		return lugares_ocupados;
+	}
 }
 
 unsigned int Veiculo::getCapacidade(){
 	return this->capacidade;
-}
-
-bool Veiculo::decCapacidade(unsigned int lugares_ocupados){
-	if(this->capacidade-lugares_ocupados < 0)
-		return false;
-	else
-		this->capacidade = this->capacidade-lugares_ocupados;
-	return true;
 }
 
 float Veiculo::getDist(){

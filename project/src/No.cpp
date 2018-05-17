@@ -10,11 +10,18 @@
 
 using namespace std;
 
-No::No(int id, int x, int y, unsigned int nPessoas) {
+No::No(int id, int x, int y) {
 	this->id = id;
 	this->x = x;
 	this->y =y;
 	this->num_people = 0;
+}
+
+No::No(int id, int x, int y, unsigned int num_people) {
+	this->id = id;
+	this->x = x;
+	this->y =y;
+	this->num_people = num_people;
 }
 
 bool No::dec_num_people(unsigned int n_people){
@@ -56,6 +63,6 @@ bool No::operator<(const No &no1) const
 	return this->getID() < no1.getID();
 }
 
-unsigned int No::getNPessoas(){
+unsigned int No::get_num_people(){
 	return this->num_people;
 }

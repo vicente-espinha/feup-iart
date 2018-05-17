@@ -36,13 +36,13 @@ class Vertex {
 	bool visited;
 	bool processing;
 	float heuristic;
-	float accCost;
+	unsigned int num_people_vehicle;
 	void addEdge(int idAresta, Vertex<T> *dest, double w);
 	bool removeEdgeTo(Vertex<T> *d);
 
 	//folha pratica 5
 	int indegree;
-	int dist;
+	float dist;
 public:
 	Vertex(T in);
 	friend class Graph<T>;
@@ -50,6 +50,7 @@ public:
 	int getIndegree() const;
 	vector< Edge<T> > getAdj();
 	int getDist() const;
+	unsigned int get_num_people_vehicle() const;
 	int getVectorPos() const;
 	Vertex* path;
 
@@ -117,6 +118,11 @@ template <class T>
 int Vertex<T>::getVectorPos() const{
 
 	return vectorPos;
+}
+
+template <class T>
+unsigned int Vertex<T>::get_num_people_vehicle() const{
+	return this->num_people_vehicle;
 }
 
 /*
@@ -214,7 +220,7 @@ public:
 	void getfloydWarshallPathAux(int index1, int index2, vector<T> & res);
 	vector< Edge<T> > getEdges(vector<T> nodes);
 	void aStarPath(const T &init, const T &final);
-	void aStarPathComplex(const T &init, const T &final, const Veiculo &vehicle);
+	void aStarPathComplex(const T &init, const T &final, Veiculo &vehicle);
 
 
 };
@@ -934,21 +940,23 @@ void Graph<T>::aStarPath(const T &init, const T &final) {
 }
 
 template<class T>
-void Graph<T>::aStarPathComplex(const T &init, const T &final,const Veiculo &vehicle){
-	for(unsigned int i = 0; i < vertexSet.size(); i++) {
+void Graph<T>::aStarPathComplex(const T &init, const T &final, Veiculo &vehicle){
+		for(unsigned int i = 0; i < vertexSet.size(); i++) {
 			vertexSet[i]->path = NULL;
 			vertexSet[i]->dist = INT_INFINITY;
 			vertexSet[i]->processing = false;
+			vertexSet[i]->num_people_vehicle = 0;
 		}
 
 		Vertex<T>* vinit = getVertex(init);
 		Vertex<T>* vfinal = getVertex(final);
 
-		int distX = pow((vinit->info.getX() - vfinal->info.getX()), 2);
-		int distY = pow((vinit->info.getY() - vfinal->info.getY()), 2);
-		vinit->heuristic = sqrt(distX + distY);
+		int distX = abs(vinit->info.getX() - vfinal->info.getX());
+		int distY = abs(vinit->info.getY() - vfinal->info.getY());
+		unsigned int dist_max_total = distX+distY;
+		vinit->heuristic = 1*0.2 + 1*0.8;
 
-		vinit->dist = 0;
+		vinit->dist = 0*0.2 + 1*0.8;
 
 		vector< Vertex<T>* > pq;
 		pq.push_back(vinit);
@@ -968,18 +976,36 @@ void Graph<T>::aStarPathComplex(const T &init, const T &final,const Veiculo &veh
 
 
 
-				distX = pow((vfinal->info.getX() - w->info.getX()), 2);
-				distY = pow((vfinal->info.getY() - w->info.getY()), 2);
-				float distance = sqrt(distX + distY);
-				float capacity = vehicle->getCapacity();
+				int distX = abs(vfinal->info.getX() - w->info.getX());
+				int distY = abs(vfinal->info.getY() - w->info.getY());
+				float distance = distX + distY;
 
-				if(
+				unsigned int next_num_people = v->get_num_people_vehicle() + w->getInfo().get_num_people(); // num de pessoas do veiculo no no atual + o num de pessoas no no seguinte
+				unsigned int vehicle_capacity = vehicle.getCapacidade();
 
-				w->heuristic = ;
+				float current_perc_capacity_disp = 1- (v->get_num_people_vehicle() / vehicle_capacity);  //percentagem de disponiveis no nó atual
 
-				if((v->dist + v->adj[i].weight + v->heuristic) < w->dist ) {
+				unsigned int next_real_capacity_disp = vehicle_capacity - next_num_people;
+				float next_perc_capacity_disp = 0;//percentagem de disponiveis no próximo nó
 
-					w->dist = v->dist + v->adj[i].weight;
+				if(next_real_capacity_disp >= 0){
+					next_perc_capacity_disp = next_real_capacity_disp/vehicle_capacity;
+				}
+
+
+				cout<<"NODE: "<<w->getInfo().getID()<<"  DIST CURRENT: "<<current_perc_capacity_disp<< "  NEXT REAL: "<< next_real_capacity_disp<<endl;
+				float aux = (v->adj[i].weight/dist_max_total)*0.2 + (next_perc_capacity_disp - current_perc_capacity_disp)*0.8;
+
+				cout<<"AUX: "<<aux<<endl;
+
+				w->heuristic = (distance/dist_max_total)*0.2+(next_perc_capacity_disp)*0.8;
+
+				cout<<"W: "<<w->heuristic<<endl;
+
+				if((v->dist + aux + w->heuristic) < w->dist ) {
+
+					w->dist = v->dist + aux;
+					w->num_people_vehicle = next_num_people;
 					w->path = v;
 
 					//se já estiver na lista, apenas a actualiza
@@ -993,6 +1019,7 @@ void Graph<T>::aStarPathComplex(const T &init, const T &final,const Veiculo &veh
 				}
 			}
 		}
+		cin.get();
 
 }
 

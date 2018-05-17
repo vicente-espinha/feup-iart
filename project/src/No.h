@@ -34,7 +34,9 @@ public:
 	 * @param x representacao da posicao nos eixos xx do novo No
 	 * @param y representacao da posicao nos eixos yy do novo No
 	 */
-	No(int id, int x, int y, unsigned int nPessoas);
+	No(int id, int x, int y);
+
+	No(int id, int x, int y, unsigned int num_people);
 	/**
 	 * Destrutor default de um No
 	 */
@@ -68,7 +70,7 @@ public:
 	 */
 	int getY() const;
 
-	unsigned int getNPessoas();
+	unsigned int get_num_people();
 
 	bool dec_num_people(unsigned int n_people);
 };

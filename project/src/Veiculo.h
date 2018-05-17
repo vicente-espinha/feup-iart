@@ -12,7 +12,6 @@
 #define SRC_VEICULO_H_
 
 #include <string>
-#include "Graph.h"
 #include "No.h"
 
 using namespace std;
@@ -65,7 +64,7 @@ public:
 	/**
 	 * Decrementa em um valor o numero de turnos em que o veiculo se encotrar indisponivel
 	 */
-	void decDisponibilidade();
+	unsigned int decDisponibilidade(unsigned int lugares_ocupados);
 
 	/**
 	 * Retorna o valor da capacidade atual do veiculo
@@ -77,7 +76,6 @@ public:
 	 * @param numero de lugares que ocupados nesse instante
 	 * @return retorna verdadeiro se após o numero de lugares ocupados pretendido, a ambulancia nao fica sobrelotada
 	 */
-	bool decCapacidade(unsigned int lugares_ocupados);
 
 	float getDist();
 

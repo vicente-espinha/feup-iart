@@ -25,3 +25,13 @@ void Path::print() {
 	}
 }
 
+void Path::update_vehicle_path(Veiculo * vehicle){
+	for(unsigned int i = 0; i < path.size();i++){
+		unsigned int people_rescued = vehicle->decDisponibilidade(path[i]->get_num_people());
+		if(people_rescued > 0){
+			path[i]->dec_num_people(people_rescued);
+		}
+	}
+
+}
+

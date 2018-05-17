@@ -282,7 +282,19 @@ void tipoEmergencia(Emergencia &em)
 
 				cout << "veiculo :" << veiculo->getlocalNode().getID()<< "\n\n";
 
+
 				cin.get();
+
+				Path path = em.path_vehicle(veiculo);
+				cout << "Path:\n";
+				vector<No*> nodes = path.get_path();
+				for(unsigned int i= 0; i < nodes.size();i++){
+					cout << "Node: " << nodes[i]->getID()<< "\n";
+				}
+				cout << "End of path \n";
+
+				cin.get();
+
 				//emLevel(em,1);
 				running = false;
 				system("CLS");

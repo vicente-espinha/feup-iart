@@ -272,11 +272,11 @@ Veiculo* Emergencia::ambulance_selection(){
 		x += resgates[i].getX();
 		y += resgates[i].getY();
 
-		temp_people = resgates[i].getNPessoas();
+		temp_people = resgates[i].get_num_people();
 		total_people += temp_people;
 		people.push_back(temp_people);
 
-		if(resgates[i].getNPessoas() > 0){
+		if(resgates[i].get_num_people() > 0){
 			exist = true;
 		}
 	}
@@ -345,6 +345,15 @@ vector<float> Emergencia::calc_percentage(vector<float> raw_values) {
 
 }
 
+Path Emergencia::path_vehicle(Veiculo* vehicle){
+	myGraph.aStarPathComplex(vehicle->getlocalNode(), hospital ,*vehicle);
+	Path path = myGraph.getPath(vehicle->getlocalNode(), hospital);
+	path.update_vehicle_path(vehicle);
+
+	return path;
+
+}
+
 vector<Path> Emergencia::calc_dist_rescues(Veiculo veiculo){
 	No node = veiculo.getlocalNode();
 	vector<Path> paths;
@@ -354,7 +363,7 @@ vector<Path> Emergencia::calc_dist_rescues(Veiculo veiculo){
 			return paths;
 	}
 	for(unsigned int i=0; i<resgates.size(); i++) {
-		if(resgates[i].getNPessoas() > 0){
+		if(resgates[i].get_num_people() > 0){
 			myGraph.aStarPath(node,resgates[i]);
 			Path rescue = myGraph.getPath(node,resgates[i]);
 			paths.push_back(rescue);
@@ -517,10 +526,8 @@ void Emergencia::colorNodes() {
 
 	vector<Veiculo>::iterator it = this->INEM.begin();
 	for (; it != INEM.end(); it++) {
-		(*it).decDisponibilidade();
-		if ((*it).getDisponibilidade() == 0)
+		if ((*it).getlocalNode().getID() != hospital.getID() )
 			gv->setVertexIcon((*it).getlocalNode().getID(), "../icons/INEM.png");
-
 	}
 
 	gv->setVertexIcon(hospital.getID(), "../icons/hospital.png");
@@ -756,141 +763,10 @@ vector<string> Emergencia::verificacaoExata(string user_string, string tipo, Fre
 }
 */
 
-bool Emergencia::pesquisaExata(string rua_utilizador, string rua_grafo) {
-
-	vector<string> splited_rua_grafo = splitString(rua_grafo);
-	vector<string> splited_rua_utilizador = splitString(rua_utilizador);
-	for(int i = 0 ; (i + splited_rua_utilizador.size()) <= splited_rua_grafo.size() ; i++ ){
-		string text = concatenateStrings(splited_rua_grafo, splited_rua_utilizador.size(), i);
-		string pattern = concatenateStrings(splited_rua_utilizador, splited_rua_utilizador.size(), 0);
-		if(KMP(pattern, text))
-			return true;
-
-	}
-	return false;
-}
-
-multimap<int, string> Emergencia::pesquisaAproximada(string rua_utilizador, vector<string> &graph_vector){
-
-
-
-	vector<string> split_rua_utilizador = splitString(rua_utilizador); // vetor com todas as palavras escritas pelo utilizador, divididas em strings
-	vector<string> split_rua_grafo; // vetor com todas as palavras da rua do grafo que se encontra em análise, divididas em strings
-	map<string, int> map_ruas; // map <nome da rua, menor diferenca entre a palavra do utilizador, a ser analisada e as varias palavras da rua em questao>
-	vector<map<string,int> > diferenca_ruas; //vetor contendo os map_ruas de cada uma das palavras escritas pelo utilizador
-	multimap<int, string> final; //multimap<diferenca minima total da rua em consideracao, nome da rua em consideracao>
-	int diferenca_minima;
-	int diferenca_temp;
-
-	//itera todas as palavras escritas pelo utilizador
-	for (unsigned int i=0; i<split_rua_utilizador.size(); i++){
-
-		//para cada palavra do utilizador itera todas as ruas do grafo
-		for(unsigned int j=0; j<graph_vector.size(); j++){
-
-			split_rua_grafo= splitString(graph_vector[j]); // divide a ruado grafo em analise nas suas varias palavras
-			diferenca_minima = -1; // reset ao valor da diferenca minima da rua sinalizando que houve mudanca de rua
-
-			//itera cada uma das palavras da rua do grafo em analise
-			for(unsigned int k=0; k<split_rua_grafo.size(); k++){
-
-				//condicao para garantir que as palavras com tamanho menor que o da palavra do utilizador,
-				//e que ao mesmo tempo nao tem 3 caracteres(para evitar analise excessiva de palavras com "de" "da",
-				//que poderiam provocar semelhancas indesejadas), nao serão analisadas.
-				if((split_rua_grafo[k].size() < split_rua_utilizador[i].size()) && ( split_rua_grafo[k].size() <= 3))
-					continue;
-
-				//obtem a distancia entre a palvara do utilizador que esta a ser analisada
-				//e a palavra da rua que esta a ser analisada
-				diferenca_temp = editDistance(split_rua_utilizador[i], split_rua_grafo[k]);
-
-				//verifica se essa é a primeira palavra da rua que esta a ser analisada
-				//ou se a sua diferenca dessa rua é menor que a minima diferenca atual da rua,
-				//atualizando a diferenca minima se for esse o caso
-				if(diferenca_minima ==-1 || diferenca_temp<diferenca_minima){
-					diferenca_minima = diferenca_temp;
-				}
-
-			}
-			//insere a rua analisada no map de ruas da palavra de utilizador que esta atualmente a ser analisada
-			map_ruas.insert(pair<string, int>(graph_vector[j], diferenca_minima));
-		}
-		//terminado a analise da palavra do utilizador para todas as ruas,
-		//guarda-se o map resultante para cada palavra, limpando o map ruas para que possa ser utilizado pela palavra seguinte
-		diferenca_ruas.push_back(map_ruas);
-		map_ruas.clear();
-
-	}
-
-	int totaldistance;
-
-	//calcula a menor diatncia total entre a cada rua do grafo e a string total escrita pelo utilizador
-	for(unsigned int i=0;i< graph_vector.size(); i++){
-
-		totaldistance=0;
-		//para cada rua itera-se o vetor que contem os maps de cada uma das palavras da string do utilizaodr
-		for(unsigned int j=0; j<diferenca_ruas.size(); j++){
-
-			//soma as varias distancias minimas da rua em analise
-			totaldistance += diferenca_ruas[j][graph_vector[i]];
-		}
-		//insere no vetor final um par contendo a minima distancia total da rua e o seu nome
-		//para que sejam ordenados por minima distancia
-		final.insert(pair<int, string>(totaldistance, graph_vector[i]));
-	}
-
-	//retorna o nome das ruas pela sua ordem de semelhanca,da mais semelhante para a menos semelhante
-	return final;
-
-}
-/*
-vector<string> Emergencia::verificacaoAproximada(string string_utilizador, string tipo, Freguesia fr){
-	tempoinicial = std::chrono::system_clock::now();
-	vector<string> graph_strings;
-	vector<string> ret;
-	vector<int> IDruas;
-	if(tipo == "ruas"){
-		IDruas = getKeys(fr.getIDRuaNo());
-		for(int i=0; i<IDruas.size(); i++){
-
-			graph_strings.push_back(ruas.at(IDruas[i]-1).getNome());
-		}
-	}else
-	{
-		for(int i=0; i<freguesias.size(); i++){
-
-			graph_strings.push_back(freguesias[i].getNome());
-		}
-	}
-	multimap<int,string> final_strings = pesquisaAproximada(string_utilizador, graph_strings);
-
-	unsigned int to_print = 0;
-	for (std::multimap<int,string>::iterator it=final_strings.begin(); it!=final_strings.end(); ++it){
-		if(to_print < 6 ){
-
-
-			cout<< to_print+1 << " - " << (*it).second<<endl;
-			ret.push_back((*it).second);
-			to_print++;
-
-		}
-		else
-			break;
-	}
-	tempofinal = std::chrono::system_clock::now();
-	cout<<endl<<endl<<" TempoFinal: "<<std::chrono::duration_cast<std::chrono::nanoseconds>(tempofinal-tempoinicial).count();
-	getchar();
-	return ret;
-
-}
-*/
-
 
 void Emergencia::encontraVeiculos(vector<int> ids) {
 	string ret = "";
 	bool in = false;
-	bool bomb = false;
-	bool pol = false;
 	vector<int> numInem;
 	vector<int> numPolicias = vector<int>();
 	vector<int> numBombeiros;

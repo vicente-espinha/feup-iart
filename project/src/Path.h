@@ -5,6 +5,7 @@
 #include <utility>
 #include <string>
 #include "No.h"
+#include "Veiculo.h"
 #include <limits>
 #include <cstddef>
 #include <vector>
@@ -23,6 +24,7 @@ public:
 	vector<No*> get_path();
 	float get_dist();
 	void print();
+	void update_vehicle_path( Veiculo *vehicle);
 
 };
 
