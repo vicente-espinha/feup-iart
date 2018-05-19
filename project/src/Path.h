@@ -16,7 +16,7 @@ class Path {
 private:
 	vector<No*> path;
 	float dist;
-	No* rescue;
+	No rescue;
 
 public:
 	Path(){};
@@ -31,8 +31,8 @@ public:
 	void append(Path rhs);
 	vector<No> get_nodes();
 
-	No* get_rescue();
-	void set_rescue(No* rescue);
+	No get_rescue();
+	void set_rescue(No rescue);
 
 };
 

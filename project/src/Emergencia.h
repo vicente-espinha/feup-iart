@@ -42,6 +42,7 @@ private:
 	Graph<No> main_graph;
 	GraphViewer *gv;
 	unsigned int left_num_people = 0;
+	float total_distance = 0;
 	int ID_ARESTA_GERAL;
 	system_clock::time_point tempoinicial=system_clock::now();
 	system_clock::time_point  tempofinal=system_clock::now();
@@ -86,7 +87,7 @@ public:
 
 	void pre_process();
 
-	void aStarPath();
+	void path(bool aStar);
 
 	void update_rescue(Veiculo * vehicle, Path path, vector<Edge<No>> edges);
 

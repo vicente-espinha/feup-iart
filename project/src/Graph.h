@@ -141,7 +141,7 @@ unsigned int Vertex<T>::get_num_people_vehicle() const{
 
 template<class T>
 void Vertex<T>::updateInfo(unsigned int num_people){
-	this->info->dec_num_people(num_people);
+	this->info.dec_num_people(num_people);
 }
 
 /*
@@ -241,6 +241,8 @@ public:
 	vector< Edge<T> > getEdges(vector<T> nodes);
 	void aStarPath(const T &init, const T &final);
 	void aStarPathComplex(const T &init, const T &final, const int vehicle_capacity, Graph<T> *complete_graph, float dist_max_total);
+	void dijkstraPath(const T &init, const T &final);
+	void dijkstraPathComplex(const T &init, const T &final, const int vehicle_capacity, Graph<T> *complete_graph, float dist_max_total);
 
 
 };
@@ -658,23 +660,26 @@ Path Graph<T>::getPath(const T &origin, const T &dest){
 	Vertex<T>* v = getVertex(dest);
 	float final_dist = v->getDist();
 
+
 	Vertex<T>* w;
 
 	vector< Edge<T> > edges;
 	unsigned int count = 0;
-	T* rescue;
+	T rescue;
 
 	do {
-		buffer.push_front(&v->info);
 
+		buffer.push_front(&v->info);
+		cout<<"BUFFER"<<endl;
 		w = v;
 		v = v->path;
+		cout<<" ATUAÇL:  "<<w->info.getID()<<"  PROXIMO  "<<v->info.getID()<<endl;
 
 		edges = v->getAdj();
 		for(unsigned int i = 0; i < edges.size(); i++){
 			if(edges[i].getDest()->getInfo() == w->getInfo() && !edges[i].intermedium_nodes.empty()){
 				if(count == 0){
-					rescue = edges[i].intermedium_nodes[edges[i].intermedium_nodes.size()-1];
+					rescue = v->getInfo();
 					count++;
 				}
 				for(unsigned int j = edges[i].intermedium_nodes.size()-2; j > 0;j--) {
@@ -978,6 +983,9 @@ void Graph<T>::aStarPath(const T &init, const T &final) {
 
 template<class T>
 void Graph<T>::aStarPathComplex(const T &init, const T &final, const int vehicle_capacity, Graph<T> *complete_graph, float dist_max_total){
+
+		cout<<"NEW A*";
+
 		for(unsigned int i = 0; i < vertexSet.size(); i++) {
 			vertexSet[i]->path = NULL;
 			vertexSet[i]->dist = INT_INFINITY;
@@ -1006,7 +1014,9 @@ void Graph<T>::aStarPathComplex(const T &init, const T &final, const int vehicle
 
 			for(unsigned int i = 0; i < v->adj.size(); i++) {
 				Vertex<T>* w = v->adj[i].dest;
-				//v->adj[i].setVisited(true);
+
+				if(w->getInfo() == vfinal->info && v->get_num_people_vehicle() == 0)
+					continue;
 
 				(*complete_graph).aStarPath(v->getInfo(), w->getInfo());
 				Path edge = (*complete_graph).getPath(v->getInfo(), w->getInfo());
@@ -1017,11 +1027,11 @@ void Graph<T>::aStarPathComplex(const T &init, const T &final, const int vehicle
 
 				unsigned int increment_num_people = w->getInfo().get_num_people();
 
-								if((increment_num_people + v->get_num_people_vehicle()) > vehicle_capacity) {
-									increment_num_people = vehicle_capacity - v->get_num_people_vehicle();
-								}
+				if((increment_num_people + v->get_num_people_vehicle()) > vehicle_capacity) {
+					increment_num_people = vehicle_capacity - v->get_num_people_vehicle();
+				}
 
-								float total_weight = (v->adj[i].weight/(dist_max_total*1.0))*0.2 + (1-(increment_num_people/(vehicle_capacity*1.0)))*0.8;
+				float total_weight = (v->adj[i].weight/(dist_max_total*1.0))*0.2 + (1-(increment_num_people/(vehicle_capacity*1.0)))*0.8;
 
 
 
@@ -1051,9 +1061,13 @@ void Graph<T>::aStarPathComplex(const T &init, const T &final, const int vehicle
 				w->heuristic = (distance/dist_max_total)*0.2+(next_perc_capacity_disp)*0.8;
 
 				cout<<"W: "<<w->heuristic<<endl;
+				if(w->
 */
-				if(v->dist + total_weight < w->dist ) {
 
+					cout<<"DISTANCIA: "<<w->dist<<endl;
+				if(v->dist + total_weight < w->dist  || (w->dist == 1)) {
+
+					cout<<"UPDATE DIST"<<endl;
 					w->dist = v->dist + total_weight;
 					w->num_people_vehicle = increment_num_people + v->get_num_people_vehicle();
 					w->path = v;
@@ -1071,6 +1085,142 @@ void Graph<T>::aStarPathComplex(const T &init, const T &final, const int vehicle
 					}
 
 					make_heap (pq.begin(),pq.end(),vertex_greater_than_complex<T>());
+				}
+			}
+		}
+		cin.get();
+
+}
+
+
+
+
+
+
+template<class T>
+void Graph<T>::dijkstraPath(const T &init, const T &final) {
+
+	for(unsigned int i = 0; i < vertexSet.size(); i++) {
+		vertexSet[i]->path = NULL;
+		vertexSet[i]->dist = INT_INFINITY;
+		vertexSet[i]->processing = false;
+	}
+
+	Vertex<T>* vinit = getVertex(init);
+	Vertex<T>* vfinal = getVertex(final);
+
+	int distX = pow((vinit->info.getX() - vfinal->info.getX()), 2);
+	int distY = pow((vinit->info.getY() - vfinal->info.getY()), 2);
+	vinit->heuristic = sqrt(distX + distY);
+
+	vinit->dist = 0;
+
+	vector< Vertex<T>* > pq;
+	pq.push_back(vinit);
+
+	make_heap(pq.begin(), pq.end());
+
+	Vertex<T>* v;
+	while( !pq.empty() ) {
+
+		v = pq.front();
+		pop_heap(pq.begin(), pq.end());
+		pq.pop_back();
+
+		for(unsigned int i = 0; i < v->adj.size(); i++) {
+			Vertex<T>* w = v->adj[i].dest;
+			//v->adj[i].setVisited(true);
+
+			if(v->dist + v->adj[i].weight < w->dist ) {
+
+				w->dist = v->dist + v->adj[i].weight;
+				distX = abs(vfinal->info.getX() - w->info.getX());
+				distY = abs(vfinal->info.getY() - w->info.getY());
+				w->path = v;
+
+				//se já estiver na lista, apenas a actualiza
+				if(!w->processing)
+				{
+					w->processing = true;
+					pq.push_back(w);
+				}
+
+				make_heap (pq.begin(),pq.end(),vertex_greater_than_dist<T>());
+			}
+		}
+	}
+}
+
+template<class T>
+void Graph<T>::dijkstraPathComplex(const T &init, const T &final, const int vehicle_capacity, Graph<T> *complete_graph, float dist_max_total){
+
+		cout<<"NEW DIJKSTRA";
+
+		for(unsigned int i = 0; i < vertexSet.size(); i++) {
+			vertexSet[i]->path = NULL;
+			vertexSet[i]->dist = INT_INFINITY;
+			vertexSet[i]->processing = false;
+			vertexSet[i]->num_people_vehicle = 0;
+		}
+
+		Vertex<T>* vinit = getVertex(init);
+		Vertex<T>* vfinal = getVertex(final);
+
+		vinit->dist = 1;
+
+		vector< Vertex<T>* > pq;
+		pq.push_back(vinit);
+
+		make_heap(pq.begin(), pq.end());
+
+		Vertex<T>* v;
+		while( !pq.empty() ) {
+
+			v = pq.front();
+			pop_heap(pq.begin(), pq.end());
+			pq.pop_back();
+
+			for(unsigned int i = 0; i < v->adj.size(); i++) {
+				Vertex<T>* w = v->adj[i].dest;
+
+				if(w->getInfo() == vfinal->info && v->get_num_people_vehicle() == 0)
+					continue;
+
+				(*complete_graph).dijkstraPath(v->getInfo(), w->getInfo());
+				Path edge = (*complete_graph).getPath(v->getInfo(), w->getInfo());
+				v->adj[i].weight = edge.get_dist();
+				v->adj[i].intermedium_nodes = edge.get_path();
+				cout<<"ARESTA: "<<v->getInfo().getID()<<" PARA: "<<w->getInfo().getID()<<" PESO: "<<v->adj[i].weight<<endl;
+				edge.print();
+
+				unsigned int increment_num_people = w->getInfo().get_num_people();
+
+				if((increment_num_people + v->get_num_people_vehicle()) > vehicle_capacity) {
+					increment_num_people = vehicle_capacity - v->get_num_people_vehicle();
+				}
+
+				float total_weight = (v->adj[i].weight/(dist_max_total*1.0))*0.2 + (1-(increment_num_people/(vehicle_capacity*1.0)))*0.8;
+
+					cout<<"DISTANCIA: "<<w->dist<<endl;
+				if(v->dist + total_weight < w->dist  || (w->dist == 1)) {
+
+					cout<<"UPDATE DIST"<<endl;
+					w->dist = v->dist + total_weight;
+					w->num_people_vehicle = increment_num_people + v->get_num_people_vehicle();
+					w->path = v;
+
+					int distX = abs(vfinal->info.getX() - w->info.getX());
+					int distY = abs(vfinal->info.getY() - w->info.getY());
+
+
+					//se jaestiver na lista, apenas a actualiza
+					if(!w->processing)
+					{
+						w->processing = true;
+						pq.push_back(w);
+					}
+
+					make_heap (pq.begin(),pq.end(),vertex_greater_than_dist<T>());
 				}
 			}
 		}

@@ -25,10 +25,10 @@ No::No(int id, int x, int y, unsigned int num_people) {
 }
 
 bool No::dec_num_people(unsigned int n_people){
-	if(this->num_people-n_people < 0)
+	if(this->num_people < n_people)
 		return false;
 
-	this->num_people = n_people;
+	this->num_people -= n_people;
 	return true;
 }
 

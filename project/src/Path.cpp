@@ -39,6 +39,7 @@ bool Path::operator<(Path &rhs){
 	return this->dist < rhs.get_dist();
 }
 
+
 void Path::append(Path rhs){
 	vector<No*> rhs_path = rhs.get_path();
 	this->path.insert(this->path.begin(), rhs_path.begin(), rhs_path.end());
@@ -53,11 +54,11 @@ vector<No> Path::get_nodes() {
 	return nodes;
 }
 
-No* Path::get_rescue(){
+No Path::get_rescue(){
 	return this->rescue;
 }
 
-void Path::set_rescue(No* rescue){
+void Path::set_rescue(No rescue){
 	this->rescue = rescue;
 }
 

@@ -253,7 +253,7 @@ void capacityMenu(Emergencia &em, int type)
 				cout << "yolo2"<<endl;
 				em.displayGraph();
 				cin.get();
-				em.aStarPath();
+				em.path(false);
 
 				/*Veiculo* veiculo = em.ambulance_selection();
 				cin.get();

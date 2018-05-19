@@ -32,6 +32,7 @@ Vertex<No>* Emergencia::findNo(int id) {
 }
 
 float Emergencia::firstGraph(No vehicle){
+	main_graph = Graph<No>();
 	unsigned int aresta = 1;
 	main_graph.addVertex(vehicle);
 	main_graph.addVertex(hospital);
@@ -220,6 +221,7 @@ void Emergencia::readResgate(string filename){
 
 		linestream >> idNo >> token >> X >> token >> Y >> token >> npessoas_resgate;
 
+		this->left_num_people += npessoas_resgate;
 
 		Resgate resgate(idNo, X, Y ,npessoas_resgate);
 		myGraph.addVertex(resgate);
@@ -280,32 +282,46 @@ void Emergencia::pre_process(){
 	}
 }
 
-void Emergencia::aStarPath() {
+void Emergencia::path(bool aStar) {
 
-  //while(this->left_num_people > 0){
+	int iteracao = 0;
+
+  while(this->left_num_people > 0){
+	  cout << endl << endl << "Inicio da iteracao " << iteracao << endl;
+	  cout<<endl<<endl;
+	  cout<<"PESSOAS: "<<this->left_num_people<<endl;
 	Veiculo* ambulance = this->ambulance_selection();
 
 	cout<<"AMBULANCE "<<ambulance->getlocalNode().getID()<<endl;
 	float max_dist = this->firstGraph(ambulance->getlocalNode());
 	cout<<"MAX DIST"<<max_dist<<endl;
-	main_graph.aStarPathComplex(ambulance->getlocalNode(), hospital, ambulance->getCapacidade(), &myGraph, max_dist);
-
+	if(aStar == true)
+		main_graph.aStarPathComplex(ambulance->getlocalNode(), hospital, ambulance->getCapacidade(), &myGraph, max_dist);
+	else
+		main_graph.dijkstraPathComplex(ambulance->getlocalNode(), hospital, ambulance->getCapacidade(), &myGraph, max_dist);
 
 	cout<<endl<<endl<<endl;
 	Path final_path = main_graph.getPath(ambulance->getlocalNode(), hospital);
 	cout<<"FINAL DISTANCE: "<<final_path.get_dist();
 	cout<<"FINAL PATH: ";
 
-	final_path.print();
 	vector< Edge<No> > edges = myGraph.getEdges(final_path.get_nodes());
+
+	cout<<"VAI DESENHAR"<<endl;
 	this->drawPath(edges, "green", "../icons/INEM.png");
 
-	//this->update_rescue(ambulance, final_path, edges);
+	this->update_rescue(ambulance, final_path, edges);
 
 	for(unsigned int i = 0; i < resgates.size();i++){
 		cout << "RESGATE_ID" << resgates[i].getID() << "  NUM_PEOPLE: " << resgates[i].get_num_people() << endl;
 	}
-  //}
+
+	cout << endl << endl << "Final da iteracao " << iteracao << endl;
+	iteracao++;
+  }
+  cin.get();
+  cout<<"TOTAL DISTANCE:  "<<this->total_distance;
+  cin.get();
 }
 
 void Emergencia::update_rescue(Veiculo * vehicle, Path path, vector<Edge<No>> edges){
@@ -318,18 +334,25 @@ void Emergencia::update_rescue(Veiculo * vehicle, Path path, vector<Edge<No>> ed
 
 	vehicle->incDist(final_dist); //update cehicle distance already done
 
-	Vertex<No>* vertex = myGraph.getVertex(*path.get_rescue());
+	Vertex<No>* vertex = myGraph.getVertex(path.get_rescue());
+	cout<<"VERTEX ID "<<vertex->getInfo().getID()<<endl;
 	unsigned int left_people = min(vehicle->getCapacidade(), vertex->getInfo().get_num_people());
 	cout << "Vertex NUM PEOPLE" << vertex->getInfo().get_num_people() <<endl;
+	vertex->updateInfo(left_people);
 
-	/*for(unsigned int i = 0; i < resgates.size();i++){
-		if(resgates[i] == (*(vertex->getInfo()))){
-			cout << "POP"<<endl;
+
+	for(unsigned int i = 0; i < resgates.size();i++){
+		if(resgates[i] == vertex->getInfo()){
 			resgates[i].dec_num_people(left_people);
 		}
-	}*/
+	}
+
+
+
+	vehicle->setlocalNode(hospital);
 
 	this->left_num_people -= left_people;
+	this->total_distance += final_dist;
 
 }
 
