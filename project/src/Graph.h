@@ -49,17 +49,26 @@ public:
 	T getInfo() const;
 	int getIndegree() const;
 	vector< Edge<T> > getAdj();
-	int getDist() const;
+	float getDist() const;
+	float getHeuristic() const;
 	unsigned int get_num_people_vehicle() const;
 	int getVectorPos() const;
 	Vertex* path;
+	void updateInfo(unsigned int num_people);
 
 };
 
 template <class T>
-struct vertex_greater_than {
+struct vertex_greater_than_dist {
     bool operator()(Vertex<T> * a, Vertex<T> * b) const {
         return a->getDist() > b->getDist();
+    }
+};
+
+template <class T>
+struct vertex_greater_than_complex {
+    bool operator()(Vertex<T> * a, Vertex<T> * b) const {
+        return (a->getDist() + a->getHeuristic()) > (b->getDist() + b->getHeuristic());
     }
 };
 
@@ -110,8 +119,13 @@ int Vertex<T>::getIndegree() const {
 }
 
 template <class T>
-int Vertex<T>::getDist() const {
+float Vertex<T>::getDist() const {
 	return this->dist;
+}
+
+template <class T>
+float Vertex<T>::getHeuristic() const {
+	return this->heuristic;
 }
 
 template <class T>
@@ -125,6 +139,11 @@ unsigned int Vertex<T>::get_num_people_vehicle() const{
 	return this->num_people_vehicle;
 }
 
+template<class T>
+void Vertex<T>::updateInfo(unsigned int num_people){
+	this->info->dec_num_people(num_people);
+}
+
 /*
  * Class Edge
  */
@@ -133,6 +152,7 @@ class Edge {
 	Vertex<T> * dest;
 	double weight;
 	int ID;
+	vector<No*> intermedium_nodes; //nodes from internal algorithm
 public:
 	Edge(Vertex<T> *d, double w);
 	Edge(int ID, Vertex<T> *d, double w);
@@ -220,7 +240,7 @@ public:
 	void getfloydWarshallPathAux(int index1, int index2, vector<T> & res);
 	vector< Edge<T> > getEdges(vector<T> nodes);
 	void aStarPath(const T &init, const T &final);
-	void aStarPathComplex(const T &init, const T &final, Veiculo &vehicle);
+	void aStarPathComplex(const T &init, const T &final, const int vehicle_capacity, Graph<T> *complete_graph, float dist_max_total);
 
 
 };
@@ -630,7 +650,6 @@ void Graph<T>::getPathTo(Vertex<T> *dest, list<T> &res) {
 		getPathTo(dest->path, res);
 
 }
-
 template<class T>
 Path Graph<T>::getPath(const T &origin, const T &dest){
 
@@ -639,22 +658,41 @@ Path Graph<T>::getPath(const T &origin, const T &dest){
 	Vertex<T>* v = getVertex(dest);
 	float final_dist = v->getDist();
 
+	Vertex<T>* w;
+
 	vector< Edge<T> > edges;
+	unsigned int count = 0;
+	T* rescue;
+
+	do {
+		buffer.push_front(&v->info);
+
+		w = v;
+		v = v->path;
+
+		edges = v->getAdj();
+		for(unsigned int i = 0; i < edges.size(); i++){
+			if(edges[i].getDest()->getInfo() == w->getInfo() && !edges[i].intermedium_nodes.empty()){
+				if(count == 0){
+					rescue = edges[i].intermedium_nodes[edges[i].intermedium_nodes.size()-1];
+					count++;
+				}
+				for(unsigned int j = edges[i].intermedium_nodes.size()-2; j > 0;j--) {
+					buffer.push_front(edges[i].intermedium_nodes.at(j));
+				}
+			}
+		}
+	}while (!(v->info == origin ));
 
 	buffer.push_front(&v->info);
-	while (! (v->path->info == origin )) {
 
-		v = v->path;
-		buffer.push_front(&v->info);
-	}
-
-	buffer.push_front(&v->path->info);
 	vector<T*> res;
 	while( !buffer.empty() ) {
 		res.push_back( buffer.front() );
 		buffer.pop_front();
 	}
 	Path path = Path(res, final_dist);
+	path.set_rescue(rescue);
 	return path;
 }
 
@@ -801,7 +839,7 @@ void Graph<T>::dijkstraShortestPath(const T &s) {
 					pq.push_back(w);
 				}
 
-				make_heap (pq.begin(),pq.end(),vertex_greater_than<T>());
+				make_heap (pq.begin(),pq.end(),vertex_greater_than_dist<T>());
 			}
 		}
 	}
@@ -917,13 +955,12 @@ void Graph<T>::aStarPath(const T &init, const T &final) {
 			Vertex<T>* w = v->adj[i].dest;
 			//v->adj[i].setVisited(true);
 
-			distX = pow((vfinal->info.getX() - w->info.getX()), 2);
-			distY = pow((vfinal->info.getY() - w->info.getY()), 2);
-			w->heuristic = sqrt(distX + distY);
-
-			if((v->dist + v->adj[i].weight + v->heuristic) < w->dist ) {
+			if(v->dist + v->adj[i].weight < w->dist ) {
 
 				w->dist = v->dist + v->adj[i].weight;
+				distX = abs(vfinal->info.getX() - w->info.getX());
+				distY = abs(vfinal->info.getY() - w->info.getY());
+				w->heuristic = distX + distY;
 				w->path = v;
 
 				//se já estiver na lista, apenas a actualiza
@@ -933,14 +970,14 @@ void Graph<T>::aStarPath(const T &init, const T &final) {
 					pq.push_back(w);
 				}
 
-				make_heap (pq.begin(),pq.end(),vertex_greater_than<T>());
+				make_heap (pq.begin(),pq.end(),vertex_greater_than_complex<T>());
 			}
 		}
 	}
 }
 
 template<class T>
-void Graph<T>::aStarPathComplex(const T &init, const T &final, Veiculo &vehicle){
+void Graph<T>::aStarPathComplex(const T &init, const T &final, const int vehicle_capacity, Graph<T> *complete_graph, float dist_max_total){
 		for(unsigned int i = 0; i < vertexSet.size(); i++) {
 			vertexSet[i]->path = NULL;
 			vertexSet[i]->dist = INT_INFINITY;
@@ -951,12 +988,9 @@ void Graph<T>::aStarPathComplex(const T &init, const T &final, Veiculo &vehicle)
 		Vertex<T>* vinit = getVertex(init);
 		Vertex<T>* vfinal = getVertex(final);
 
-		int distX = abs(vinit->info.getX() - vfinal->info.getX());
-		int distY = abs(vinit->info.getY() - vfinal->info.getY());
-		unsigned int dist_max_total = distX+distY;
-		vinit->heuristic = 1*0.2 + 1*0.8;
+		vinit->heuristic = 1*0.2;
 
-		vinit->dist = 0*0.2 + 1*0.8;
+		vinit->dist = 1;
 
 		vector< Vertex<T>* > pq;
 		pq.push_back(vinit);
@@ -974,8 +1008,24 @@ void Graph<T>::aStarPathComplex(const T &init, const T &final, Veiculo &vehicle)
 				Vertex<T>* w = v->adj[i].dest;
 				//v->adj[i].setVisited(true);
 
+				(*complete_graph).aStarPath(v->getInfo(), w->getInfo());
+				Path edge = (*complete_graph).getPath(v->getInfo(), w->getInfo());
+				v->adj[i].weight = edge.get_dist();
+				v->adj[i].intermedium_nodes = edge.get_path();
+				cout<<"ARESTA: "<<v->getInfo().getID()<<" PARA: "<<w->getInfo().getID()<<" PESO: "<<v->adj[i].weight<<endl;
+				edge.print();
+
+				unsigned int increment_num_people = w->getInfo().get_num_people();
+
+								if((increment_num_people + v->get_num_people_vehicle()) > vehicle_capacity) {
+									increment_num_people = vehicle_capacity - v->get_num_people_vehicle();
+								}
+
+								float total_weight = (v->adj[i].weight/(dist_max_total*1.0))*0.2 + (1-(increment_num_people/(vehicle_capacity*1.0)))*0.8;
 
 
+
+								/*
 				int distX = abs(vfinal->info.getX() - w->info.getX());
 				int distY = abs(vfinal->info.getY() - w->info.getY());
 				float distance = distX + distY;
@@ -1001,21 +1051,26 @@ void Graph<T>::aStarPathComplex(const T &init, const T &final, Veiculo &vehicle)
 				w->heuristic = (distance/dist_max_total)*0.2+(next_perc_capacity_disp)*0.8;
 
 				cout<<"W: "<<w->heuristic<<endl;
+*/
+				if(v->dist + total_weight < w->dist ) {
 
-				if((v->dist + aux + w->heuristic) < w->dist ) {
-
-					w->dist = v->dist + aux;
-					w->num_people_vehicle = next_num_people;
+					w->dist = v->dist + total_weight;
+					w->num_people_vehicle = increment_num_people + v->get_num_people_vehicle();
 					w->path = v;
 
-					//se já estiver na lista, apenas a actualiza
+					int distX = abs(vfinal->info.getX() - w->info.getX());
+					int distY = abs(vfinal->info.getY() - w->info.getY());
+					w->heuristic = 0.2*((distX + distY)/dist_max_total);
+
+
+					//se jaestiver na lista, apenas a actualiza
 					if(!w->processing)
 					{
 						w->processing = true;
 						pq.push_back(w);
 					}
 
-					make_heap (pq.begin(),pq.end(),vertex_greater_than<T>());
+					make_heap (pq.begin(),pq.end(),vertex_greater_than_complex<T>());
 				}
 			}
 		}

@@ -31,6 +31,26 @@ Vertex<No>* Emergencia::findNo(int id) {
 
 }
 
+float Emergencia::firstGraph(No vehicle){
+	unsigned int aresta = 1;
+	main_graph.addVertex(vehicle);
+	main_graph.addVertex(hospital);
+	float max_dist=0.0, temp_dist;
+	for(unsigned int i = 0; i < resgates.size();i++){
+		temp_dist = resgates[i]-hospital;
+		if(max_dist < temp_dist) {
+			max_dist = temp_dist;
+		}
+		if(resgates[i].get_num_people() > 0){
+			main_graph.addVertex(resgates[i]);
+			main_graph.addEdge(aresta, vehicle, resgates[i],1);aresta++;
+			main_graph.addEdge(aresta,resgates[i], hospital,1);aresta++;
+		}
+
+	}
+	return max_dist;
+}
+
 void Emergencia::readStreets() {
 
 
@@ -42,7 +62,7 @@ void Emergencia::readStreets() {
 	int NoID, idRua;
 
 	//Ler o ficheiro ruas.txt
-	ifstream inFile("../files/ruas.txt");
+	ifstream inFile("../files/streets.txt");
 
 	if (!inFile) {
 		cerr << "Unable to open file ruas.txt";
@@ -124,6 +144,7 @@ void Emergencia::readHospitals(string filename){
 
 	if (!inFile) {
 		cerr << "Unable to open hospitals file";
+		cin.get();
 		exit(1);   // call system to stop
 	}
 
@@ -219,7 +240,7 @@ void Emergencia::readNodes(){
 	char token { };
 
 	//Ler o ficheiro nosNormals.txt
-	inFile.open("../files/nos.txt");
+	inFile.open("../files/nodes.txt");
 
 	if (!inFile) {
 		cerr << "Unable to open file nos.txt";
@@ -244,19 +265,72 @@ void Emergencia::readNodes(){
 void Emergencia::pre_process(){
 
 	for(unsigned int i=0; i<resgates.size(); i++) {
-		for(unsigned int j=0; j<resgates.size();j++){
+		/*for(unsigned int j=0; j<resgates.size();j++){
 			if(resgates[i] != resgates[j]){
 				myGraph.aStarPath(resgates[i],resgates[j]);
 				//myGraph.dijkstraShortestPath(resgates[i]);
 				Path rescue = myGraph.getPath(resgates[i],resgates[j]);
 				resgates[i].add_outro_resgate(rescue);
 			}
-		}
+		}*/
 			myGraph.aStarPath(resgates[i],this->hospital);
 			Path rescue = myGraph.getPath(resgates[i],this->hospital);
 			resgates[i].set_hospital(rescue);
 
 	}
+}
+
+void Emergencia::aStarPath() {
+
+  //while(this->left_num_people > 0){
+	Veiculo* ambulance = this->ambulance_selection();
+
+	cout<<"AMBULANCE "<<ambulance->getlocalNode().getID()<<endl;
+	float max_dist = this->firstGraph(ambulance->getlocalNode());
+	cout<<"MAX DIST"<<max_dist<<endl;
+	main_graph.aStarPathComplex(ambulance->getlocalNode(), hospital, ambulance->getCapacidade(), &myGraph, max_dist);
+
+
+	cout<<endl<<endl<<endl;
+	Path final_path = main_graph.getPath(ambulance->getlocalNode(), hospital);
+	cout<<"FINAL DISTANCE: "<<final_path.get_dist();
+	cout<<"FINAL PATH: ";
+
+	final_path.print();
+	vector< Edge<No> > edges = myGraph.getEdges(final_path.get_nodes());
+	this->drawPath(edges, "green", "../icons/INEM.png");
+
+	//this->update_rescue(ambulance, final_path, edges);
+
+	for(unsigned int i = 0; i < resgates.size();i++){
+		cout << "RESGATE_ID" << resgates[i].getID() << "  NUM_PEOPLE: " << resgates[i].get_num_people() << endl;
+	}
+  //}
+}
+
+void Emergencia::update_rescue(Veiculo * vehicle, Path path, vector<Edge<No>> edges){
+
+	float final_dist = 0;
+
+	for(unsigned int i = 0; i < edges.size(); i++){
+		final_dist += edges[i].getWeight();
+	}
+
+	vehicle->incDist(final_dist); //update cehicle distance already done
+
+	Vertex<No>* vertex = myGraph.getVertex(*path.get_rescue());
+	unsigned int left_people = min(vehicle->getCapacidade(), vertex->getInfo().get_num_people());
+	cout << "Vertex NUM PEOPLE" << vertex->getInfo().get_num_people() <<endl;
+
+	/*for(unsigned int i = 0; i < resgates.size();i++){
+		if(resgates[i] == (*(vertex->getInfo()))){
+			cout << "POP"<<endl;
+			resgates[i].dec_num_people(left_people);
+		}
+	}*/
+
+	this->left_num_people -= left_people;
+
 }
 
 Veiculo* Emergencia::ambulance_selection(){
@@ -346,11 +420,11 @@ vector<float> Emergencia::calc_percentage(vector<float> raw_values) {
 }
 
 Path Emergencia::path_vehicle(Veiculo* vehicle){
-	myGraph.aStarPathComplex(vehicle->getlocalNode(), hospital ,*vehicle);
+	/*myGraph.aStarPathComplex(vehicle->getlocalNode(), hospital ,*vehicle);
 	Path path = myGraph.getPath(vehicle->getlocalNode(), hospital);
 	path.update_vehicle_path(vehicle);
 
-	return path;
+	return path;*/
 
 }
 

@@ -35,3 +35,29 @@ void Path::update_vehicle_path(Veiculo * vehicle){
 
 }
 
+bool Path::operator<(Path &rhs){
+	return this->dist < rhs.get_dist();
+}
+
+void Path::append(Path rhs){
+	vector<No*> rhs_path = rhs.get_path();
+	this->path.insert(this->path.begin(), rhs_path.begin(), rhs_path.end());
+	this->dist += rhs.get_dist();
+}
+
+vector<No> Path::get_nodes() {
+	vector<No> nodes;
+	for(unsigned int i=0; i<this->path.size(); i++) {
+		nodes.push_back(*(this->path[i]));
+	}
+	return nodes;
+}
+
+No* Path::get_rescue(){
+	return this->rescue;
+}
+
+void Path::set_rescue(No* rescue){
+	this->rescue = rescue;
+}
+

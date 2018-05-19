@@ -73,6 +73,8 @@ public:
 	unsigned int get_num_people();
 
 	bool dec_num_people(unsigned int n_people);
+
+	float operator-(const No &no1) const;
 };
 
 #endif /* SRC_NO_H_ */

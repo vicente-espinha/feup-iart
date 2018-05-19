@@ -39,7 +39,9 @@ private:
 	Hospital hospital;
 	vector<Resgate> resgates;
 	Graph<No> myGraph;
+	Graph<No> main_graph;
 	GraphViewer *gv;
+	unsigned int left_num_people = 0;
 	int ID_ARESTA_GERAL;
 	system_clock::time_point tempoinicial=system_clock::now();
 	system_clock::time_point  tempofinal=system_clock::now();
@@ -50,6 +52,8 @@ public:
 	 *@param FloydWarshall booleano que diz se o objeto do tipo Emergencia usa o algoritmo de Floyd-Warshall(se for dado true) ou  de Dijkstra (se o parametro dado for false)
 	 */
 	Emergencia(bool FloydWarshall);
+
+	float firstGraph(No vehicle);
 	/**
 	 * Funcao que le os ficheiros txts que representam as arestas,os nos e as ruas do grafo myGraph que e preenchido a medida que os ficheiros sao lidos
 	 * Existe o ficheiro de arestas que representa todas as arestas do grafo, e os nos que de entrada e saida de cada aresta
@@ -81,6 +85,10 @@ public:
 	void readNodes();
 
 	void pre_process();
+
+	void aStarPath();
+
+	void update_rescue(Veiculo * vehicle, Path path, vector<Edge<No>> edges);
 
 	Path path_vehicle(Veiculo * vehicle);
 

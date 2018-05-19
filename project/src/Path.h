@@ -16,6 +16,7 @@ class Path {
 private:
 	vector<No*> path;
 	float dist;
+	No* rescue;
 
 public:
 	Path(){};
@@ -25,6 +26,13 @@ public:
 	float get_dist();
 	void print();
 	void update_vehicle_path( Veiculo *vehicle);
+	bool operator<(Path &rhs);
+
+	void append(Path rhs);
+	vector<No> get_nodes();
+
+	No* get_rescue();
+	void set_rescue(No* rescue);
 
 };
 

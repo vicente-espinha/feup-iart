@@ -63,6 +63,12 @@ bool No::operator<(const No &no1) const
 	return this->getID() < no1.getID();
 }
 
+float No::operator-(const No &no1) const
+{
+	return abs(this->x-no1.getX())+abs(this->y-no1.getY());
+}
+
+
 unsigned int No::get_num_people(){
 	return this->num_people;
 }
