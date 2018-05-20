@@ -158,7 +158,7 @@ void capacityMenu(Emergencia &em, int type)
 		rescue_filename ="../files/rescue_one.txt";
 	else
 		rescue_filename ="../files/rescue_many.txt";*/
-	rescue_filename ="../files/rescue_many.txt";
+	rescue_filename ="../files/rescue_one.txt";
 
 	gotoXY(20, 10); cout << "->";
 
@@ -244,8 +244,8 @@ void capacityMenu(Emergencia &em, int type)
 
 			case 0: {
 
-				em.readHospitals("../files/hospitais3.txt");
-				em.readInem("../files/INEM3.txt");
+				em.readHospitals("../files/hospitals.txt");
+				em.readInem("../files/ambulances.txt");
 				em.readResgate(rescue_filename);
 				cout << "yolo"<<endl;
 				em.readNodes();

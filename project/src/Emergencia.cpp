@@ -63,7 +63,7 @@ void Emergencia::readStreets() {
 	int NoID, idRua;
 
 	//Ler o ficheiro ruas.txt
-	ifstream inFile("../files/ruas3.txt");
+	ifstream inFile("../files/streets.txt");
 
 	if (!inFile) {
 		cerr << "Unable to open file ruas.txt";
@@ -125,9 +125,9 @@ void Emergencia::readStreets() {
 
 	inFile.close();
 
-	for(unsigned int i=0; i<ruas.size(); i++) {
+	/*for(unsigned int i=0; i<ruas.size(); i++) {
 		cout<<"RUA: "<<ruas[i].getNome()<<"\n";
-	}
+	}*/
 
 }
 
@@ -244,7 +244,7 @@ void Emergencia::readNodes(){
 	char token { };
 
 	//Ler o ficheiro nosNormals.txt
-	inFile.open("../files/nos3.txt");
+	inFile.open("../files/nodes.txt");
 
 	if (!inFile) {
 		cerr << "Unable to open file nos.txt";
@@ -297,12 +297,12 @@ void Emergencia::path(bool aStar) {
 	else
 		main_graph.dijkstraPathComplex(ambulance->getlocalNode(), hospital, ambulance->getCapacidade(), &myGraph, max_dist);
 
-	cout<<endl<<endl<<endl;
 	Path final_path = main_graph.getPath(ambulance->getlocalNode(), hospital);
 
 	vector< Edge<No> > edges = myGraph.getEdges(final_path.get_nodes());
 
 	this->drawPath(edges, "green", "../icons/INEM.png");
+	Sleep(5000);
 
 	this->update_rescue(ambulance, final_path, edges);
 
@@ -324,8 +324,8 @@ void Emergencia::update_rescue(Veiculo * vehicle, Path path, vector<Edge<No>> ed
 		final_dist += edges[i].getWeight();
 	}
 
-	/*cout<<"AMBULANCE "<<vehicle->getId()<<endl;
-	cout << "Ponto Inicial" << vehicle->getlocalNode().getID() <<endl;
+	cout<<"AMBULANCE "<<vehicle->getId()<<endl;
+	/*cout << "Ponto Inicial" << vehicle->getlocalNode().getID() <<endl;
 	cout << "Ponto Final" << hospital.getID() <<endl;
 	cout << "Distancia"<< vehicle->getDist() <<endl;*/
 
@@ -385,7 +385,7 @@ Veiculo* Emergencia::ambulance_selection(){
 	for(unsigned int i = 0; i < people.size(); i++){
 		p = p + pow(people[i] - num_people_avg,2);
 	}
-	float total_people_aux = num_people_avg + sqrt(p/(resgates.size()-1)); //media + desvio padrao 10%
+	float total_people_aux = num_people_avg + sqrt(p/(resgates.size())); //media + desvio padrao 10%
 
 	float distX,distY,dist_final_aux,capacidade_aux;
 	vector<float> distances,times,capacidades;
@@ -400,6 +400,7 @@ Veiculo* Emergencia::ambulance_selection(){
 
 		distances.push_back(dist_final_aux);
 		times.push_back(INEM[i].getDist());
+		cout << "capacidade aux" << capacidade_aux <<endl;
 		capacidades.push_back(capacidade_aux);
 	}
 
@@ -413,10 +414,10 @@ Veiculo* Emergencia::ambulance_selection(){
 	for(unsigned int i = 0; i < INEM.size(); i++){
 		final_result = distances[i]*0.5 + times[i]*0.4 + capacidades[i]*0.1;
 
-		/*cout << "ID:" << INEM[i].getlocalNode().getID() << "\n";
+		cout << "ID:" << INEM[i].getlocalNode().getID() << "\n";
 		cout << "Distancia:" << distances[i] << "\n";
 		cout << "Tempo percorrido:" << times[i] << "\n";
-		cout << "Capacidade:" << capacidades[i] << "\n\n";*/
+		cout << "Capacidade:" << capacidades[i] << "\n\n";
 		aux.push_back(final_result);
 	}
 
