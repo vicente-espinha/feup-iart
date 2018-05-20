@@ -86,13 +86,12 @@ public:
 	 */
 	void readNodes();
 
-	void pre_process();
 
 	void path(bool aStar);
 
 	void update_rescue(Veiculo * vehicle, Path path, vector<Edge<No>> edges);
 
-	Path path_vehicle(Veiculo * vehicle);
+
 
 	vector<Path> calc_dist_rescues(Veiculo veiculo);
 
@@ -122,20 +121,8 @@ public:
 	 * @return apontador para o vertex do respetivo No no myGraph
 	 */
 	Vertex<No>* findNo(int id);
-	/**
-	 * Funcao que retorna o No onde se encontra o tipo de veiculo especificado como parametro mais perto da localizacao dada
-	 * @param localizacao local a comparar onde se encontra o veiculo mais perto
-	 * @param pathnodes vetor onde e guardado os Nos que representam o percurso desse veiculo ao local dado como parametro
-	 * @param elementType carater que representa o tipo de veiculo a encontrar('B'-bombeiros,'I'-INEM,'P'-policia)
-	 * @return o no do local onde se encontra o veiculo mais perto
-	 */
-	No findElement(Vertex<No>* localizacao, vector<No> &pathnodes, char elementType);
-	/**
-	 *Funcao que representa o movimento da ambulancia do local de socorro dado como argumento ao hospital mais perto
-	 *@param localizacao local de onde a ambulancia parte
-	 *@return retorna um vetor de arestas que representam o percurso da ambulancia ate ao hospital mais perto
-	 */
-	vector<Edge<No> > moveToHospital(Vertex<No>* localizacao);
+
+
 	/**
 	 * Apos ser demonstrado  percurso no GraphViewer feito por um veiculo e preciso atualizar o estado dos Nos do mesmo e voltar a meter as arestas
 	 * como se encontravam originalmente

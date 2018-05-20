@@ -126,9 +126,6 @@ void Emergencia::readStreets() {
 
 	inFile.close();
 
-	/*for(unsigned int i=0; i<ruas.size(); i++) {
-		cout<<"RUA: "<<ruas[i].getNome()<<"\n";
-	}*/
 
 }
 
@@ -267,32 +264,14 @@ void Emergencia::readNodes(){
 
 
 
-void Emergencia::pre_process(){
-
-	for(unsigned int i=0; i<resgates.size(); i++) {
-		/*for(unsigned int j=0; j<resgates.size();j++){
-			if(resgates[i] != resgates[j]){
-				myGraph.aStarPath(resgates[i],resgates[j]);
-				//myGraph.dijkstraShortestPath(resgates[i]);
-				Path rescue = myGraph.getPath(resgates[i],resgates[j]);
-				resgates[i].add_outro_resgate(rescue);
-			}
-		}*/
-			myGraph.aStarPath(resgates[i],this->hospital);
-			Path rescue = myGraph.getPath(resgates[i],this->hospital);
-			resgates[i].set_hospital(rescue);
-
-	}
-}
 
 void Emergencia::path(bool aStar) {
 
-	int iteracao = 0;
+
 	tempoinicial = std::chrono::system_clock::now();
   while(this->left_num_people > 0){
 
 	Veiculo* ambulance = this->ambulance_selection();
-	cout << "Veiculo escolhido nr " << ambulance->getId() << " do No " << ambulance->getlocalNode().getID() << endl << endl;
 	float max_dist = this->firstGraph(ambulance->getlocalNode());
 	if(aStar == true)
 		main_graph.aStarPathComplex(ambulance->getlocalNode(), hospital, ambulance->getCapacidade(), &myGraph, max_dist);
@@ -301,16 +280,13 @@ void Emergencia::path(bool aStar) {
 
 
 	Path final_path = main_graph.getPath(ambulance->getlocalNode(), hospital);
-	//this->displaySmallGraph();
 	vector< Edge<No> > edges = myGraph.getEdges(final_path.get_nodes());
 	gv->setVertexIcon(final_path.get_nodes().at(0).getID(),"../icons/normal.png");
 	this->drawPath(edges, "red", "../icons/INEM.png");
-	Sleep(5000);
 
 	this->update_rescue(ambulance, final_path, edges);
 
-	//cout << endl << endl << "Final da iteracao " << iteracao << endl;
-	iteracao++;
+
   }
   tempofinal = std::chrono::system_clock::now();
 
@@ -326,19 +302,15 @@ void Emergencia::update_rescue(Veiculo * vehicle, Path path, vector<Edge<No>> ed
 		final_dist += edges[i].getWeight();
 	}
 
-	//cout<<"AMBULANCE "<<vehicle->getId()<<endl;
-	/*cout << "Ponto Inicial" << vehicle->getlocalNode().getID() <<endl;
-	cout << "Ponto Final" << hospital.getID() <<endl;*/
-	//cout << "Distancia"<< vehicle->getDist() <<endl;
 
 
-	vehicle->incDist(final_dist); //update cehicle distance already done
+
+	vehicle->incDist(final_dist); //update vehicle distance already done
 
 	Vertex<No>* vertex = myGraph.getVertex(path.get_rescue());
 	unsigned int left_people = min(vehicle->getCapacidade(), vertex->getInfo().get_num_people());
 	vertex->updateInfo(left_people);
 
-	//cout << "N Pessoas" << left_people<<endl;
 
 	for(unsigned int i = 0; i < resgates.size();i++){
 		if(resgates[i] == vertex->getInfo()){
@@ -415,11 +387,6 @@ Veiculo* Emergencia::ambulance_selection(){
 	for(unsigned int i = 0; i < INEM.size(); i++){
 		final_result = distances[i]*0.5 + times[i]*0.4 + capacidades[i]*0.1;
 
-		cout << "ID:" << INEM[i].getlocalNode().getID() << "\n";
-		cout << "Distancia:" << distances[i] << "\n";
-		cout << "Tempo percorrido:" << times[i] << "\n";
-		cout << "Capacidade:" << capacidades[i] << "\n";
-		cout << "Final result: " << final_result << endl<< endl;
 		aux.push_back(final_result);
 	}
 
@@ -440,14 +407,6 @@ vector<float> Emergencia::calc_percentage(vector<float> raw_values) {
 
 }
 
-Path Emergencia::path_vehicle(Veiculo* vehicle){
-	/*myGraph.aStarPathComplex(vehicle->getlocalNode(), hospital ,*vehicle);
-	Path path = myGraph.getPath(vehicle->getlocalNode(), hospital);
-	path.update_vehicle_path(vehicle);
-
-	return path;*/
-
-}
 
 vector<Path> Emergencia::calc_dist_rescues(Veiculo veiculo){
 	No node = veiculo.getlocalNode();
@@ -471,101 +430,7 @@ vector<Path> Emergencia::calc_dist_rescues(Veiculo veiculo){
 }
 
 
-/*void Emergencia::getCall(int noID, int polFlag, int bombFlag, int inemFlag,
-		bool gotoHospital) {
 
-	if (!myGraph.stronglyConnectedComponents()) {
-		cout << "Nao e possivel calcular a sua chamada por invalidade do mapa"
-				<< endl;
-		getchar();
-		return;
-	}*/
-
-	/*tempoinicial = std::chrono::system_clock::now();
-
-	No localizacao { };
-	gv->setVertexIcon(noID, "../icons/dead.png");
-	for (unsigned int i = 0; i < myGraph.getVertexSet().size(); i++) {
-		if (myGraph.getVertexSet()[i]->getInfo().getID() == noID)
-			localizacao = myGraph.getVertexSet()[i]->getInfo();
-	}
-
-	vector<Edge<No> > pathedgesPolicia;
-	vector<Edge<No> > pathedgesBombeiros;
-	vector<Edge<No> > pathedgesINEM;
-	vector<Edge<No> > pathHospital;
-	vector<No> pathnodes;
-	vector<vector<Edge<No> > > pathsPolicia;
-	vector<vector<Edge<No> > > pathsBombeiros;
-	vector<vector<Edge<No> > > pathsINEM;
-	while (inemFlag > 0) {
-
-		No INEMAssistencia = findElement(myGraph.getVertex(localizacao),
-				pathnodes, 'I');
-		if (pathnodes.size() > 0) {
-
-			cout << "A ambulancia do INEM seguira o seguinte caminho: ";
-			for (unsigned int i = 0; i < pathnodes.size(); i++)
-				cout << pathnodes[i].getID() << " ";
-			cout << endl;
-			pathedgesINEM = myGraph.getEdges(pathnodes);
-			pathsINEM.push_back(pathedgesINEM);
-
-		} else
-			cout << "Na sua localizaçao ja existe ambulancias\n";
-		inemFlag--;
-
-	}
-	pathnodes.clear();
-	while (bombFlag > 0) {
-		No BombAssistencia = findElement(myGraph.getVertex(localizacao),
-				pathnodes, 'B');
-		if (pathnodes.size() > 0) {
-			cout << "O camiao dos bombeiros seguira o seguinte caminho: ";
-			for (unsigned int i = 0; i < pathnodes.size(); i++)
-				cout << pathnodes[i].getID() << " ";
-			cout << endl;
-			pathedgesBombeiros = myGraph.getEdges(pathnodes);
-			pathsBombeiros.push_back(pathedgesBombeiros);
-		} else
-			cout << "Na sua localizacao ja existe uns bombeiros\n" << endl;
-		bombFlag--;
-	}
-
-	pathnodes.clear();
-	while (polFlag > 0) {
-		No PoliciaAssistencia = findElement(myGraph.getVertex(localizacao),
-				pathnodes, 'P');
-		if (pathnodes.size() > 0) {
-			cout << "O carro da policia seguira o seguinte caminho: ";
-			for (unsigned int i = 0; i < pathnodes.size(); i++)
-				cout << pathnodes[i].getID() << " ";
-			cout << endl;
-			pathedgesPolicia = myGraph.getEdges(pathnodes);
-			pathsPolicia.push_back(pathedgesPolicia);
-		} else
-			cout << "Na sua localizacao ja existe policias\n" << endl;
-		polFlag--;
-	}
-	if (gotoHospital) {
-		pathHospital = moveToHospital(myGraph.getVertex(localizacao));
-		if (pathHospital.size() == 0)
-			cout << "Na sua localizacao ja existe um hospital\n" << endl;
-	}
-
-	tempofinal = std::chrono::system_clock::now();
-	cout << endl << "Tempo Final: " << system_clock::to_time_t(tempofinal) << endl;
-	for (unsigned int i = 0; i < pathsINEM.size(); i++)
-		this->drawPath(pathsINEM[i], "green", "../icons/INEM.png");
-	for (unsigned int i = 0; i < pathsBombeiros.size(); i++)
-		this->drawPath(pathsBombeiros[i], "red", "../icons/bombeiro.png");
-	for (unsigned int i = 0; i < pathsPolicia.size(); i++)
-		this->drawPath(pathsPolicia[i], "blue", "../icons/policia.png");
-	if (pathHospital.size() > 0) {
-		drawPath(pathHospital, "green", "../icons/INEM.png");
-	}
-
-}*/
 
 void Emergencia::displayGraph() {
 
@@ -724,8 +589,6 @@ void Emergencia::colorNodes() {
 
 	vector<Resgate>::iterator itresgate = this->resgates.begin();
 	for (; itresgate != resgates.end(); itresgate++) {
-		//TODO WHAT??
-		//(*it).decDisponibilidade();
 		gv->setVertexIcon((*itresgate).getID(), "../icons/dead.png");
 
 	}
@@ -733,64 +596,6 @@ void Emergencia::colorNodes() {
 	gv->rearrange();
 }
 
-No Emergencia::findElement(Vertex<No>* localizacao, vector<No> &pathnodes,
-		char elementType) {
-
-	vector<Veiculo>* auxvector;
-	switch (elementType) {
-	case 'I':
-		auxvector = &INEM;
-		break;
-	};
-
-	Veiculo* veicFinal;
-	int distAtual;
-	int distMinima = INT_MAX;
-
-	/*if (!(isFloydWarshall)) {
-		for (unsigned int i = 0; i < (*auxvector).size(); i++) {
-			if ((*auxvector)[i].getDisponibilidade() == 0) {
-				myGraph.dijkstraShortestPath((*auxvector)[i].getlocalNode());
-				distAtual = localizacao->getDist();
-				if (distAtual < distMinima) {
-					distMinima = distAtual;
-					veicFinal = &(*auxvector)[i];
-					if (!((*auxvector)[i].getlocalNode()
-							== localizacao->getInfo()))
-						pathnodes = myGraph.getPath(
-								(*auxvector)[i].getlocalNode(),
-								localizacao->getInfo());
-				}
-			}
-
-		}
-
-	} else {
-
-		for (unsigned int i = 0; i < (*auxvector).size(); i++) {
-			if ((*auxvector)[i].getDisponibilidade() == 0) {
-				distAtual =
-						myGraph.getfloydWarshallweight(
-								myGraph.getVertex(
-										(*auxvector)[i].getlocalNode())->getVectorPos(),
-										localizacao->getVectorPos());
-				if (distAtual < distMinima) {
-					distMinima = distAtual;
-					veicFinal = &(*auxvector)[i];
-				}
-			}
-		}
-		if (!((*veicFinal).getlocalNode() == localizacao->getInfo()))
-			pathnodes = myGraph.getfloydWarshallPath(
-					(*veicFinal).getlocalNode(), localizacao->getInfo());
-	}*/
-
-	(*veicFinal).setDisponibilidade(3);
-	if (pathnodes.size() > 0)
-		(*veicFinal).setlocalNode(pathnodes[pathnodes.size() - 1]);
-	return (*veicFinal).getlocalNode();
-
-}
 
 void Emergencia::drawPath(vector<Edge<No> > &edgepath, string color,
 		string icon) {
@@ -816,61 +621,6 @@ void Emergencia::drawPath(vector<Edge<No> > &edgepath, string color,
 
 }
 
-vector<Edge<No> > Emergencia::moveToHospital(Vertex<No>* localizacao) {
-	int distmin = INT_MAX;
-	No nofinal;
-	Vertex<No>* aux;
-	vector<No> nodestopaint;
-	vector<Edge<No> > edgestopaint;
-	/*if (!isFloydWarshall) {
-		myGraph.dijkstraShortestPath(localizacao->getInfo());
-		for (unsigned int i = 0; i < this->hospitais.size(); i++) {
-			aux = myGraph.getVertex(hospitais.at(i));
-			if (aux->getDist() < distmin) {
-				distmin = aux->getDist();
-				nofinal = hospitais.at(i);
-			}
-		}
-		if (distmin != 0) {
-			cout
-			<< "Posteriormente a ambulancia seguira o seguinte caminho em direcao ao hospital: ";
-			nodestopaint = myGraph.getPath(localizacao->getInfo(), nofinal);
-			for (unsigned int i = 0; i < nodestopaint.size(); i++)
-				cout << nodestopaint[i].getID() << " ";
-			cout << endl;
-
-		} else {
-			cout << "Na sua localizacao ja existe um hospital\n";
-		}
-	} else {
-
-		int weight;
-		for (unsigned int i = 0; i < this->hospitais.size(); i++) {
-			weight = myGraph.getfloydWarshallweight(localizacao->getVectorPos(),
-					myGraph.getVertex(hospitais[i])->getVectorPos());
-			if (weight < distmin) {
-				distmin = weight;
-				nofinal = hospitais.at(i);
-			}
-		}
-		if (distmin != 0) {
-			cout
-			<< "Posteriormente a ambulancia seguira o seguinte caminho em direcao ao hospital: ";
-			nodestopaint = myGraph.getfloydWarshallPath(localizacao->getInfo(),
-					nofinal);
-			for (unsigned int i = 0; i < nodestopaint.size(); i++)
-				cout << nodestopaint[i].getID() << " ";
-			cout << endl;
-
-		} else {
-			cout << "Na sua localizacao ja existe um hospital\n";
-		}
-
-	}*/
-	if (distmin != 0)
-		edgestopaint = myGraph.getEdges(nodestopaint);
-	return edgestopaint;
-}
 
 void Emergencia::resetGV() {
 
@@ -903,7 +653,7 @@ void Emergencia::resetGV() {
 
 void Emergencia::closeGV() {
 	gv->closeWindow();
-	maingv->closeWindow();
+	//maingv->closeWindow();
 }
 
 vector<Rua> Emergencia::getRuas() {
@@ -932,37 +682,6 @@ bool Emergencia::verificarConetividade() {
 	return myGraph.stronglyConnectedComponents();
 }
 
-/*
-vector<string> Emergencia::verificacaoExata(string user_string, string tipo, Freguesia fr) {
-	tempoinicial = std::chrono::system_clock::now();
-	string ret = "";
-	vector<string> vRet;
-	bool encontrou = false;
-	if(tipo == "ruas")
-		for (unsigned int i = 0; i < getKeys(fr.getIDRuaNo()).size(); i++) {
-			if (pesquisaExata(user_string, ruas.at(getKeys(fr.getIDRuaNo()).at(i) - 1).getNome())) {
-				encontrou = true;
-				 vRet.push_back(ruas.at(getKeys(fr.getIDRuaNo()).at(i) - 1).getNome());
-
-
-			}
-		}
-	else
-		for (unsigned int i = 0; i < freguesias.size(); i++) {
-			if (pesquisaExata(user_string, freguesias.at(i).getNome())) {
-				encontrou = true;
-				vRet.push_back(freguesias.at(i).getNome());
-
-
-			}
-		}
-	if(!encontrou)
-		vRet.push_back("lugar desconhecido");
-	tempofinal = std::chrono::system_clock::now();
-	cout<<endl<<endl<<" TempoFinal: "<<std::chrono::duration_cast<std::chrono::nanoseconds>(tempofinal-tempoinicial).count();
-	return vRet;
-}
-*/
 
 
 void Emergencia::encontraVeiculos(vector<int> ids) {
@@ -993,12 +712,6 @@ void Emergencia::encontraVeiculos(vector<int> ids) {
 
 }
 
-/*
-vector<Freguesia> Emergencia::getFreguesias(){
-	return freguesias;
-}
-
-*/
 
 void Emergencia::resetEmergencia(){
 	this->INEM.clear();

@@ -309,7 +309,7 @@ void algorithmMenu(Emergencia &em,int typeFlag)
 		gotoXY(18, 8); cout << "Algorithm:";
 		gotoXY(20, 10);  cout << " A*";
 		gotoXY(20, 11);  cout << " Dijkstra";
-		gotoXY(20,12);  cout << " Return to Main Menu";
+		gotoXY(20,12);  cout << " Exit";
 
 		system("pause>nul"); // the >nul bit causes it to print no message
 
