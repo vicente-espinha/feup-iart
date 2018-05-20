@@ -1,12 +1,15 @@
 
 #include "Veiculo.h"
 
-Veiculo::Veiculo(No local, unsigned int capacidade){
+Veiculo::Veiculo(unsigned int ID,No local, unsigned int capacidade){
 	this->local = local;
 	this->capacidade = capacidade;
 	this->dist = 0;
 	this->disponivel = capacidade;
+	this->ID = ID;
 }
+
+
 
 Veiculo::~Veiculo() {
 	// TODO Auto-generated destructor stub
@@ -56,4 +59,7 @@ float Veiculo::getDist(){
 
 void Veiculo::incDist(float dist){
 	this->dist +=dist;
+}
+unsigned int Veiculo::getId(){
+	return this->ID;
 }

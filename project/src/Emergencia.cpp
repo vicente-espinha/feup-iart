@@ -63,7 +63,7 @@ void Emergencia::readStreets() {
 	int NoID, idRua;
 
 	//Ler o ficheiro ruas.txt
-	ifstream inFile("../files/streets.txt");
+	ifstream inFile("../files/ruas3.txt");
 
 	if (!inFile) {
 		cerr << "Unable to open file ruas.txt";
@@ -180,6 +180,7 @@ void Emergencia::readInem(string filename){
 			exit(1);   // call system to stop
 		}
 		unsigned int capacidade;
+		unsigned int id = 1;
 
 		while (getline(inFile, line)) {
 
@@ -190,7 +191,8 @@ void Emergencia::readInem(string filename){
 			No n(idNo, X, Y);
 
 			myGraph.addVertex(n);
-			Veiculo v(n,capacidade);
+			Veiculo v(id,n,capacidade);
+			id++;
 			INEM.push_back(v);
 
 		}
@@ -242,7 +244,7 @@ void Emergencia::readNodes(){
 	char token { };
 
 	//Ler o ficheiro nosNormals.txt
-	inFile.open("../files/nodes.txt");
+	inFile.open("../files/nos3.txt");
 
 	if (!inFile) {
 		cerr << "Unable to open file nos.txt";
@@ -285,16 +287,11 @@ void Emergencia::pre_process(){
 void Emergencia::path(bool aStar) {
 
 	int iteracao = 0;
-
+	tempoinicial = std::chrono::system_clock::now();
   while(this->left_num_people > 0){
-	  cout << endl << endl << "Inicio da iteracao " << iteracao << endl;
-	  cout<<endl<<endl;
-	  cout<<"PESSOAS: "<<this->left_num_people<<endl;
-	Veiculo* ambulance = this->ambulance_selection();
 
-	cout<<"AMBULANCE "<<ambulance->getlocalNode().getID()<<endl;
+	Veiculo* ambulance = this->ambulance_selection();
 	float max_dist = this->firstGraph(ambulance->getlocalNode());
-	cout<<"MAX DIST"<<max_dist<<endl;
 	if(aStar == true)
 		main_graph.aStarPathComplex(ambulance->getlocalNode(), hospital, ambulance->getCapacidade(), &myGraph, max_dist);
 	else
@@ -302,25 +299,20 @@ void Emergencia::path(bool aStar) {
 
 	cout<<endl<<endl<<endl;
 	Path final_path = main_graph.getPath(ambulance->getlocalNode(), hospital);
-	cout<<"FINAL DISTANCE: "<<final_path.get_dist();
-	cout<<"FINAL PATH: ";
 
 	vector< Edge<No> > edges = myGraph.getEdges(final_path.get_nodes());
 
-	cout<<"VAI DESENHAR"<<endl;
 	this->drawPath(edges, "green", "../icons/INEM.png");
 
 	this->update_rescue(ambulance, final_path, edges);
 
-	for(unsigned int i = 0; i < resgates.size();i++){
-		cout << "RESGATE_ID" << resgates[i].getID() << "  NUM_PEOPLE: " << resgates[i].get_num_people() << endl;
-	}
-
 	cout << endl << endl << "Final da iteracao " << iteracao << endl;
 	iteracao++;
   }
-  cin.get();
+  tempofinal = std::chrono::system_clock::now();
+
   cout<<"TOTAL DISTANCE:  "<<this->total_distance;
+  cout<<endl<<endl<<" TempoFinal: "<<std::chrono::duration_cast<std::chrono::nanoseconds>(tempofinal-tempoinicial).count()<<endl;
   cin.get();
 }
 
@@ -332,22 +324,25 @@ void Emergencia::update_rescue(Veiculo * vehicle, Path path, vector<Edge<No>> ed
 		final_dist += edges[i].getWeight();
 	}
 
+	/*cout<<"AMBULANCE "<<vehicle->getId()<<endl;
+	cout << "Ponto Inicial" << vehicle->getlocalNode().getID() <<endl;
+	cout << "Ponto Final" << hospital.getID() <<endl;
+	cout << "Distancia"<< vehicle->getDist() <<endl;*/
+
+
 	vehicle->incDist(final_dist); //update cehicle distance already done
 
 	Vertex<No>* vertex = myGraph.getVertex(path.get_rescue());
-	cout<<"VERTEX ID "<<vertex->getInfo().getID()<<endl;
 	unsigned int left_people = min(vehicle->getCapacidade(), vertex->getInfo().get_num_people());
-	cout << "Vertex NUM PEOPLE" << vertex->getInfo().get_num_people() <<endl;
 	vertex->updateInfo(left_people);
 
+	//cout << "N Pessoas" << left_people<<endl;
 
 	for(unsigned int i = 0; i < resgates.size();i++){
 		if(resgates[i] == vertex->getInfo()){
 			resgates[i].dec_num_people(left_people);
 		}
 	}
-
-
 
 	vehicle->setlocalNode(hospital);
 
@@ -709,7 +704,7 @@ void Emergencia::drawPath(vector<Edge<No> > &edgepath, string color,
 		gv->setEdgeColor(edgepath.at(i).getID(), color);
 		gv->setEdgeThickness(edgepath.at(i).getID(), 5);
 		gv->rearrange();
-		Sleep(1000);
+		//Sleep(1000);
 		gv->setVertexIcon(edgepath.at(i).getDest()->getInfo().getID(),
 				"../icons/normal.png");
 		gv->rearrange();

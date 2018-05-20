@@ -153,11 +153,12 @@ void capacityMenu(Emergencia &em, int type)
 	system("CLS");//cleans cmd
 
 	string rescue_filename;
-
+/*
 	if(type == 1)
 		rescue_filename ="../files/rescue_one.txt";
 	else
-		rescue_filename ="../files/rescue_many.txt";
+		rescue_filename ="../files/rescue_many.txt";*/
+	rescue_filename ="../files/rescue_many.txt";
 
 	gotoXY(20, 10); cout << "->";
 
@@ -243,8 +244,8 @@ void capacityMenu(Emergencia &em, int type)
 
 			case 0: {
 
-				em.readHospitals("../files/hospitals.txt");
-				em.readInem("../files/ambulances.txt");
+				em.readHospitals("../files/hospitais3.txt");
+				em.readInem("../files/INEM3.txt");
 				em.readResgate(rescue_filename);
 				cout << "yolo"<<endl;
 				em.readNodes();
@@ -252,8 +253,6 @@ void capacityMenu(Emergencia &em, int type)
 				em.readStreets();
 				cout << "yolo2"<<endl;
 				em.displayGraph();
-				cin.get();
-				em.path(false);
 
 				/*Veiculo* veiculo = em.ambulance_selection();
 				cin.get();
@@ -281,6 +280,16 @@ void capacityMenu(Emergencia &em, int type)
 
 
 			case 1: {
+
+				em.readHospitals("../files/hospitais3.txt");
+				em.readInem("../files/INEM3.txt");
+				em.readResgate(rescue_filename);
+				cout << "yolo"<<endl;
+				em.readNodes();
+				cout << "yolo1"<<endl;
+				em.readStreets();
+				cout << "yolo2"<<endl;
+				em.displayGraph();
 
 				algorithmMenu(em,2);
 				running = false;
@@ -410,6 +419,8 @@ void algorithmMenu(Emergencia &em,int typeFlag)
 					em.getCall(noid,0,0,1, false);
 					break;
 				}*/
+				em.path(true);
+				cin.get();
 				Sleep(2000);
 				getchar();
 				running = false;
@@ -433,6 +444,9 @@ void algorithmMenu(Emergencia &em,int typeFlag)
 					em.getCall(noid,1,0,1, true);
 					break;
 				}*/
+				cin.get();
+				em.path(false);
+				cin.get();
 				Sleep(2000);
 				getchar();
 				//em.resetGV();

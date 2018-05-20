@@ -655,7 +655,6 @@ void Graph<T>::getPathTo(Vertex<T> *dest, list<T> &res) {
 template<class T>
 Path Graph<T>::getPath(const T &origin, const T &dest){
 
-
 	list<T*> buffer;
 	Vertex<T>* v = getVertex(dest);
 	float final_dist = v->getDist();
@@ -670,10 +669,8 @@ Path Graph<T>::getPath(const T &origin, const T &dest){
 	do {
 
 		buffer.push_front(&v->info);
-		cout<<"BUFFER"<<endl;
 		w = v;
 		v = v->path;
-		cout<<" ATUAÇL:  "<<w->info.getID()<<"  PROXIMO  "<<v->info.getID()<<endl;
 
 		edges = v->getAdj();
 		for(unsigned int i = 0; i < edges.size(); i++){
@@ -938,9 +935,9 @@ void Graph<T>::aStarPath(const T &init, const T &final) {
 	Vertex<T>* vinit = getVertex(init);
 	Vertex<T>* vfinal = getVertex(final);
 
-	int distX = pow((vinit->info.getX() - vfinal->info.getX()), 2);
-	int distY = pow((vinit->info.getY() - vfinal->info.getY()), 2);
-	vinit->heuristic = sqrt(distX + distY);
+	int distX = abs(vfinal->info.getX() - vinit->info.getX());
+	int distY = abs(vfinal->info.getY() - vinit->info.getY());
+	vinit->heuristic = distX + distY;
 
 	vinit->dist = 0;
 
@@ -984,8 +981,6 @@ void Graph<T>::aStarPath(const T &init, const T &final) {
 template<class T>
 void Graph<T>::aStarPathComplex(const T &init, const T &final, const int vehicle_capacity, Graph<T> *complete_graph, float dist_max_total){
 
-		cout<<"NEW A*";
-
 		for(unsigned int i = 0; i < vertexSet.size(); i++) {
 			vertexSet[i]->path = NULL;
 			vertexSet[i]->dist = INT_INFINITY;
@@ -1022,8 +1017,6 @@ void Graph<T>::aStarPathComplex(const T &init, const T &final, const int vehicle
 				Path edge = (*complete_graph).getPath(v->getInfo(), w->getInfo());
 				v->adj[i].weight = edge.get_dist();
 				v->adj[i].intermedium_nodes = edge.get_path();
-				cout<<"ARESTA: "<<v->getInfo().getID()<<" PARA: "<<w->getInfo().getID()<<" PESO: "<<v->adj[i].weight<<endl;
-				edge.print();
 
 				unsigned int increment_num_people = w->getInfo().get_num_people();
 
@@ -1033,41 +1026,8 @@ void Graph<T>::aStarPathComplex(const T &init, const T &final, const int vehicle
 
 				float total_weight = (v->adj[i].weight/(dist_max_total*1.0))*0.2 + (1-(increment_num_people/(vehicle_capacity*1.0)))*0.8;
 
-
-
-								/*
-				int distX = abs(vfinal->info.getX() - w->info.getX());
-				int distY = abs(vfinal->info.getY() - w->info.getY());
-				float distance = distX + distY;
-
-				unsigned int next_num_people = v->get_num_people_vehicle() + w->getInfo().get_num_people(); // num de pessoas do veiculo no no atual + o num de pessoas no no seguinte
-				unsigned int vehicle_capacity = vehicle.getCapacidade();
-
-				float current_perc_capacity_disp = 1- (v->get_num_people_vehicle() / vehicle_capacity);  //percentagem de disponiveis no nó atual
-
-				unsigned int next_real_capacity_disp = vehicle_capacity - next_num_people;
-				float next_perc_capacity_disp = 0;//percentagem de disponiveis no próximo nó
-
-				if(next_real_capacity_disp >= 0){
-					next_perc_capacity_disp = next_real_capacity_disp/vehicle_capacity;
-				}
-
-
-				cout<<"NODE: "<<w->getInfo().getID()<<"  DIST CURRENT: "<<current_perc_capacity_disp<< "  NEXT REAL: "<< next_real_capacity_disp<<endl;
-				float aux = (v->adj[i].weight/dist_max_total)*0.2 + (next_perc_capacity_disp - current_perc_capacity_disp)*0.8;
-
-				cout<<"AUX: "<<aux<<endl;
-
-				w->heuristic = (distance/dist_max_total)*0.2+(next_perc_capacity_disp)*0.8;
-
-				cout<<"W: "<<w->heuristic<<endl;
-				if(w->
-*/
-
-					cout<<"DISTANCIA: "<<w->dist<<endl;
 				if(v->dist + total_weight < w->dist  || (w->dist == 1)) {
 
-					cout<<"UPDATE DIST"<<endl;
 					w->dist = v->dist + total_weight;
 					w->num_people_vehicle = increment_num_people + v->get_num_people_vehicle();
 					w->path = v;
@@ -1088,13 +1048,7 @@ void Graph<T>::aStarPathComplex(const T &init, const T &final, const int vehicle
 				}
 			}
 		}
-		cin.get();
-
 }
-
-
-
-
 
 
 template<class T>
@@ -1129,7 +1083,6 @@ void Graph<T>::dijkstraPath(const T &init, const T &final) {
 
 		for(unsigned int i = 0; i < v->adj.size(); i++) {
 			Vertex<T>* w = v->adj[i].dest;
-			//v->adj[i].setVisited(true);
 
 			if(v->dist + v->adj[i].weight < w->dist ) {
 
@@ -1154,7 +1107,6 @@ void Graph<T>::dijkstraPath(const T &init, const T &final) {
 template<class T>
 void Graph<T>::dijkstraPathComplex(const T &init, const T &final, const int vehicle_capacity, Graph<T> *complete_graph, float dist_max_total){
 
-		cout<<"NEW DIJKSTRA";
 
 		for(unsigned int i = 0; i < vertexSet.size(); i++) {
 			vertexSet[i]->path = NULL;
@@ -1190,9 +1142,6 @@ void Graph<T>::dijkstraPathComplex(const T &init, const T &final, const int vehi
 				Path edge = (*complete_graph).getPath(v->getInfo(), w->getInfo());
 				v->adj[i].weight = edge.get_dist();
 				v->adj[i].intermedium_nodes = edge.get_path();
-				cout<<"ARESTA: "<<v->getInfo().getID()<<" PARA: "<<w->getInfo().getID()<<" PESO: "<<v->adj[i].weight<<endl;
-				edge.print();
-
 				unsigned int increment_num_people = w->getInfo().get_num_people();
 
 				if((increment_num_people + v->get_num_people_vehicle()) > vehicle_capacity) {
@@ -1201,17 +1150,12 @@ void Graph<T>::dijkstraPathComplex(const T &init, const T &final, const int vehi
 
 				float total_weight = (v->adj[i].weight/(dist_max_total*1.0))*0.2 + (1-(increment_num_people/(vehicle_capacity*1.0)))*0.8;
 
-					cout<<"DISTANCIA: "<<w->dist<<endl;
 				if(v->dist + total_weight < w->dist  || (w->dist == 1)) {
 
-					cout<<"UPDATE DIST"<<endl;
+
 					w->dist = v->dist + total_weight;
 					w->num_people_vehicle = increment_num_people + v->get_num_people_vehicle();
 					w->path = v;
-
-					int distX = abs(vfinal->info.getX() - w->info.getX());
-					int distY = abs(vfinal->info.getY() - w->info.getY());
-
 
 					//se jaestiver na lista, apenas a actualiza
 					if(!w->processing)
@@ -1224,7 +1168,6 @@ void Graph<T>::dijkstraPathComplex(const T &init, const T &final, const int vehi
 				}
 			}
 		}
-		cin.get();
 
 }
 

@@ -18,6 +18,7 @@ using namespace std;
 
 class Veiculo {
 private:
+	unsigned int ID;
 	unsigned int disponivel;
 	No local;
 	unsigned int capacidade;
@@ -35,7 +36,7 @@ public:
 	 * @param local No que representa o local onde se encontra o veiculo
 	 * @param capacidade Capacidade do veiculo
 	 */
-	Veiculo(No local, unsigned int capacidade);
+	Veiculo(unsigned int ID,No local, unsigned int capacidade);
 	/**
 	 * Destrutor de um Veiculo
 	 */
@@ -80,6 +81,8 @@ public:
 	float getDist();
 
 	void incDist(float dist);
+
+	unsigned int getId();
 
 
 };
