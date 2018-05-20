@@ -18,7 +18,7 @@ void menu_principal(Emergencia &em)
 {
 
 	int menu_item = 0; //usada para saber qual e o caso do switch que esta a apontar
-	int 	x = 10; //usada para saber a linha que a seta esta apontar
+	int x = 10; //usada para saber a linha que a seta esta apontar
 	bool running = true;
 	system("CLS");//cleans cmd
 
@@ -106,22 +106,29 @@ void menu_principal(Emergencia &em)
 
 			case 0: {
 				gotoXY(20,16);
-				capacityMenu(em,1);
+				//capacityMenu(em,1);
+				em.readHospitals("../files/hospitals.txt");
+				em.readInem("../files/ambulances.txt");
+				string rescue_filename ="../files/rescue_one.txt";
+				em.readResgate(rescue_filename);
+				em.readNodes();
+				em.readStreets();
+				em.displayGraph();
+				algorithmMenu(em,2);
+				running = false;
 				break;
 			}
 
 			case 1:{
-				/*if(em.verificarConetividade())
-				{
-					gotoXY(20,16);
-					cout << "O grafo e conexo";
-
-				}else
-				{
-					gotoXY(20,16);
-					cout << "O grafo nao e conexo";
-				}*/
-				capacityMenu(em,2);
+				em.readHospitals("../files/hospitals.txt");
+				em.readInem("../files/ambulances.txt");
+				string rescue_filename ="../files/rescue_many.txt";
+				em.readResgate(rescue_filename);
+				em.readNodes();
+				em.readStreets();
+				em.displayGraph();
+				algorithmMenu(em,2);
+				running = false;
 				system("CLS");
 				break;
 			}
@@ -153,12 +160,12 @@ void capacityMenu(Emergencia &em, int type)
 	system("CLS");//cleans cmd
 
 	string rescue_filename;
-/*
+
 	if(type == 1)
 		rescue_filename ="../files/rescue_one.txt";
 	else
-		rescue_filename ="../files/rescue_many.txt";*/
-	rescue_filename ="../files/rescue_one.txt";
+		rescue_filename ="../files/rescue_many.txt";
+
 
 	gotoXY(20, 10); cout << "->";
 
@@ -247,31 +254,9 @@ void capacityMenu(Emergencia &em, int type)
 				em.readHospitals("../files/hospitals.txt");
 				em.readInem("../files/ambulances.txt");
 				em.readResgate(rescue_filename);
-				cout << "yolo"<<endl;
 				em.readNodes();
-				cout << "yolo1"<<endl;
 				em.readStreets();
-				cout << "yolo2"<<endl;
 				em.displayGraph();
-
-				/*Veiculo* veiculo = em.ambulance_selection();
-				cin.get();
-
-				cout << "veiculo :" << veiculo->getlocalNode().getID()<< "\n\n";
-
-
-				cin.get();
-
-				Path path = em.path_vehicle(veiculo);
-				cout << "Path:\n";
-				vector<No*> nodes = path.get_path();
-				for(unsigned int i= 0; i < nodes.size();i++){
-					cout << "Node: " << nodes[i]->getID()<< "\n";
-				}
-				cout << "End of path \n";
-
-				cin.get();*/
-
 				algorithmMenu(em,1);
 				running = false;
 				system("CLS");
@@ -281,14 +266,11 @@ void capacityMenu(Emergencia &em, int type)
 
 			case 1: {
 
-				em.readHospitals("../files/hospitais3.txt");
-				em.readInem("../files/INEM3.txt");
+				em.readHospitals("../files/hospitals.txt");
+				em.readInem("../files/ambulances.txt");
 				em.readResgate(rescue_filename);
-				cout << "yolo"<<endl;
 				em.readNodes();
-				cout << "yolo1"<<endl;
 				em.readStreets();
-				cout << "yolo2"<<endl;
 				em.displayGraph();
 
 				algorithmMenu(em,2);
@@ -406,23 +388,12 @@ void algorithmMenu(Emergencia &em,int typeFlag)
 
 				int noid;
 				gotoXY(20,17);
-				//noid = tipoLocalizacao(em);
-				/*switch(typeFlag)
-				{
-				case 1:
-					em.getCall(noid,0,1,0, false);
-					break;
-				case 2:
-					em.getCall(noid,1,0,0, false);
-					break;
-				case 3:
-					em.getCall(noid,0,0,1, false);
-					break;
-				}*/
 				em.path(true);
+				//em.displaySmallGraph();
 				cin.get();
-				Sleep(2000);
-				getchar();
+				em.closeGV();
+				Emergencia emergencia(true);
+				menu_principal(emergencia);
 				running = false;
 				system("CLS");
 
@@ -431,25 +402,12 @@ void algorithmMenu(Emergencia &em,int typeFlag)
 			case 1: {
 				int noid;
 				gotoXY(20,17);
-				//noid = tipoLocalizacao(em);
-				/*switch(typeFlag)
-				{
-				case 1:
-					em.getCall(noid,1,1,0, false);
-					break;
-				case 2:
-					em.getCall(noid,1,0,1, false);
-					break;
-				case 3:
-					em.getCall(noid,1,0,1, true);
-					break;
-				}*/
-				cin.get();
 				em.path(false);
+				//em.displaySmallGraph();
 				cin.get();
-				Sleep(2000);
-				getchar();
-				//em.resetGV();
+				em.closeGV();
+				Emergencia emergencia(true);
+				menu_principal(emergencia);
 				running = false;
 				system("CLS");
 

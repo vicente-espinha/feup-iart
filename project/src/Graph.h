@@ -1063,10 +1063,6 @@ void Graph<T>::dijkstraPath(const T &init, const T &final) {
 	Vertex<T>* vinit = getVertex(init);
 	Vertex<T>* vfinal = getVertex(final);
 
-	int distX = pow((vinit->info.getX() - vfinal->info.getX()), 2);
-	int distY = pow((vinit->info.getY() - vfinal->info.getY()), 2);
-	vinit->heuristic = sqrt(distX + distY);
-
 	vinit->dist = 0;
 
 	vector< Vertex<T>* > pq;
@@ -1087,8 +1083,6 @@ void Graph<T>::dijkstraPath(const T &init, const T &final) {
 			if(v->dist + v->adj[i].weight < w->dist ) {
 
 				w->dist = v->dist + v->adj[i].weight;
-				distX = abs(vfinal->info.getX() - w->info.getX());
-				distY = abs(vfinal->info.getY() - w->info.getY());
 				w->path = v;
 
 				//se já estiver na lista, apenas a actualiza

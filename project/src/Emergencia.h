@@ -41,6 +41,7 @@ private:
 	Graph<No> myGraph;
 	Graph<No> main_graph;
 	GraphViewer *gv;
+	GraphViewer *maingv;
 	unsigned int left_num_people = 0;
 	float total_distance = 0;
 	int ID_ARESTA_GERAL;
@@ -177,8 +178,11 @@ public:
 
 	vector<float> calc_percentage(vector<float> raw_values);
 
-
-
+	void displaySmallGraph();
+	void colorMainNodes();
+	void resetMainGV();
+	void resetEmergencia();
+	void closeGV();
 
 
 };

@@ -10,6 +10,7 @@ using namespace std;
 Emergencia::Emergencia(bool FloydWarshall) {
 	ID_ARESTA_GERAL = 1;
 	gv = new GraphViewer(600, 600, false);
+	maingv =new GraphViewer(600, 600, false);
 
 
 }
@@ -291,29 +292,30 @@ void Emergencia::path(bool aStar) {
   while(this->left_num_people > 0){
 
 	Veiculo* ambulance = this->ambulance_selection();
+	cout << "Veiculo escolhido nr " << ambulance->getId() << " do No " << ambulance->getlocalNode().getID() << endl << endl;
 	float max_dist = this->firstGraph(ambulance->getlocalNode());
 	if(aStar == true)
 		main_graph.aStarPathComplex(ambulance->getlocalNode(), hospital, ambulance->getCapacidade(), &myGraph, max_dist);
 	else
 		main_graph.dijkstraPathComplex(ambulance->getlocalNode(), hospital, ambulance->getCapacidade(), &myGraph, max_dist);
 
+
 	Path final_path = main_graph.getPath(ambulance->getlocalNode(), hospital);
-
+	//this->displaySmallGraph();
 	vector< Edge<No> > edges = myGraph.getEdges(final_path.get_nodes());
-
-	this->drawPath(edges, "green", "../icons/INEM.png");
+	gv->setVertexIcon(final_path.get_nodes().at(0).getID(),"../icons/normal.png");
+	this->drawPath(edges, "red", "../icons/INEM.png");
 	Sleep(5000);
 
 	this->update_rescue(ambulance, final_path, edges);
 
-	cout << endl << endl << "Final da iteracao " << iteracao << endl;
+	//cout << endl << endl << "Final da iteracao " << iteracao << endl;
 	iteracao++;
   }
   tempofinal = std::chrono::system_clock::now();
 
   cout<<"TOTAL DISTANCE:  "<<this->total_distance;
   cout<<endl<<endl<<" TempoFinal: "<<std::chrono::duration_cast<std::chrono::nanoseconds>(tempofinal-tempoinicial).count()<<endl;
-  cin.get();
 }
 
 void Emergencia::update_rescue(Veiculo * vehicle, Path path, vector<Edge<No>> edges){
@@ -324,10 +326,10 @@ void Emergencia::update_rescue(Veiculo * vehicle, Path path, vector<Edge<No>> ed
 		final_dist += edges[i].getWeight();
 	}
 
-	cout<<"AMBULANCE "<<vehicle->getId()<<endl;
+	//cout<<"AMBULANCE "<<vehicle->getId()<<endl;
 	/*cout << "Ponto Inicial" << vehicle->getlocalNode().getID() <<endl;
-	cout << "Ponto Final" << hospital.getID() <<endl;
-	cout << "Distancia"<< vehicle->getDist() <<endl;*/
+	cout << "Ponto Final" << hospital.getID() <<endl;*/
+	//cout << "Distancia"<< vehicle->getDist() <<endl;
 
 
 	vehicle->incDist(final_dist); //update cehicle distance already done
@@ -400,7 +402,6 @@ Veiculo* Emergencia::ambulance_selection(){
 
 		distances.push_back(dist_final_aux);
 		times.push_back(INEM[i].getDist());
-		cout << "capacidade aux" << capacidade_aux <<endl;
 		capacidades.push_back(capacidade_aux);
 	}
 
@@ -417,7 +418,8 @@ Veiculo* Emergencia::ambulance_selection(){
 		cout << "ID:" << INEM[i].getlocalNode().getID() << "\n";
 		cout << "Distancia:" << distances[i] << "\n";
 		cout << "Tempo percorrido:" << times[i] << "\n";
-		cout << "Capacidade:" << capacidades[i] << "\n\n";
+		cout << "Capacidade:" << capacidades[i] << "\n";
+		cout << "Final result: " << final_result << endl<< endl;
 		aux.push_back(final_result);
 	}
 
@@ -611,8 +613,102 @@ void Emergencia::displayGraph() {
 	this->resetGV();
 	this->writeRuas();
 	gv->rearrange();
-	cin.get();
 
+}
+
+void Emergencia::displaySmallGraph(){
+	maingv->createWindow(600, 600);
+
+		maingv->defineEdgeColor("black");
+		maingv->defineVertexIcon("../icons/normal.png");
+		maingv->defineEdgeCurved(false);
+
+		vector<Vertex<No>*> vertexSet = main_graph.getVertexSet();
+
+		typename vector<Vertex<No>*>::const_iterator it = vertexSet.begin();
+		typename vector<Vertex<No>*>::const_iterator ite = vertexSet.end();
+
+		for (; it != ite; it++) {
+
+			No addno = (*it)->getInfo();
+
+			maingv->addNode(addno.getID(), (addno.getX() * 2) + 20,
+					-(addno.getY() * 2) + 420);
+			stringstream ss;
+			ss << addno.getID();
+			maingv->setVertexLabel(addno.getID(), ss.str());
+		}
+
+		it = vertexSet.begin();
+		ite = vertexSet.end();
+		typename vector<Edge<No> >::iterator itEdges;
+		typename vector<Edge<No> >::iterator iteEdges;
+
+		for (; it != ite; it++) {
+
+			vector<Edge<No> > edgesvec = (*it)->getAdj();
+			itEdges = edgesvec.begin();
+			iteEdges = edgesvec.end();
+			for (; itEdges != iteEdges; itEdges++) {
+				maingv->addEdge((itEdges)->getID(), (*it)->getInfo().getID(),
+						(itEdges)->getDest()->getInfo().getID(),
+						EdgeType::DIRECTED);
+			}
+
+		}
+		colorMainNodes();
+
+		this->resetMainGV();
+		maingv->rearrange();
+}
+
+void Emergencia::colorMainNodes() {
+
+	vector<Veiculo>::iterator it = this->INEM.begin();
+	for (; it != INEM.end(); it++) {
+		if ((*it).getlocalNode().getID() != hospital.getID() )
+			maingv->setVertexIcon((*it).getlocalNode().getID(), "../icons/INEM.png");
+	}
+
+	maingv->setVertexIcon(hospital.getID(), "../icons/hospital.png");
+
+
+	vector<Resgate>::iterator itresgate = this->resgates.begin();
+	for (; itresgate != resgates.end(); itresgate++) {
+		maingv->setVertexIcon((*itresgate).getID(), "../icons/dead.png");
+
+	}
+
+	maingv->rearrange();
+}
+
+void Emergencia::resetMainGV() {
+
+	vector<Vertex<No>*> vertexSet = main_graph.getVertexSet();
+	typename vector<Vertex<No>*>::const_iterator it = vertexSet.begin();
+	typename vector<Vertex<No>*>::const_iterator ite = vertexSet.end();
+	typename vector<Edge<No> >::iterator itEdges;
+	typename vector<Edge<No> >::iterator iteEdges;
+
+	for (; it != ite; it++) {
+
+		vector<Edge<No> > edgesvec = (*it)->getAdj();
+		itEdges = edgesvec.begin();
+		iteEdges = edgesvec.end();
+		for (; itEdges != iteEdges; itEdges++) {
+			maingv->setEdgeColor(itEdges->getID(), "black");
+			maingv->setEdgeThickness(itEdges->getID(), 1);
+		}
+
+	}
+
+	vector<Vertex<No>*> aux = main_graph.getVertexSet();
+	for (unsigned int i = 0; i < aux.size(); i++) {
+		maingv->setVertexIcon(aux.at(i)->getInfo().getID(), "../icons/normal.png");
+	}
+	this->colorMainNodes();
+
+	maingv->rearrange();
 }
 
 void Emergencia::colorNodes() {
@@ -705,7 +801,14 @@ void Emergencia::drawPath(vector<Edge<No> > &edgepath, string color,
 		gv->setEdgeColor(edgepath.at(i).getID(), color);
 		gv->setEdgeThickness(edgepath.at(i).getID(), 5);
 		gv->rearrange();
-		//Sleep(1000);
+		Sleep(1000);
+
+
+
+		if(i == (edgepath.size()-1)){
+			gv->setVertexIcon(edgepath.at(i).getDest()->getInfo().getID(),
+							"../icons/hospital.png");
+		}else
 		gv->setVertexIcon(edgepath.at(i).getDest()->getInfo().getID(),
 				"../icons/normal.png");
 		gv->rearrange();
@@ -796,6 +899,11 @@ void Emergencia::resetGV() {
 	this->colorNodes();
 
 	gv->rearrange();
+}
+
+void Emergencia::closeGV() {
+	gv->closeWindow();
+	maingv->closeWindow();
 }
 
 vector<Rua> Emergencia::getRuas() {
@@ -891,3 +999,16 @@ vector<Freguesia> Emergencia::getFreguesias(){
 }
 
 */
+
+void Emergencia::resetEmergencia(){
+	this->INEM.clear();
+	this->ruas.clear();
+	gv = new GraphViewer(600, 600, false);
+	system_clock::time_point tempoinicial=system_clock::now();
+	system_clock::time_point  tempofinal=system_clock::now();
+	ID_ARESTA_GERAL = 1;
+	total_distance = 0;
+	left_num_people = 0;
+	resgates.clear();
+
+}
