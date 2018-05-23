@@ -272,6 +272,7 @@ void Emergencia::path(bool aStar) {
   while(this->left_num_people > 0){
 
 	Veiculo* ambulance = this->ambulance_selection();
+	cout << " Vehicle ID : " << ambulance->getId() << " NODE : " << ambulance->getlocalNode().getID() << endl;
 	float max_dist = this->firstGraph(ambulance->getlocalNode());
 	if(aStar == true)
 		main_graph.aStarPathComplex(ambulance->getlocalNode(), hospital, ambulance->getCapacidade(), &myGraph, max_dist);
@@ -282,16 +283,22 @@ void Emergencia::path(bool aStar) {
 	Path final_path = main_graph.getPath(ambulance->getlocalNode(), hospital);
 	vector< Edge<No> > edges = myGraph.getEdges(final_path.get_nodes());
 	gv->setVertexIcon(final_path.get_nodes().at(0).getID(),"../icons/normal.png");
-	this->drawPath(edges, "red", "../icons/INEM.png");
 
 	this->update_rescue(ambulance, final_path, edges);
+	this->drawPath(edges, "red", "../icons/INEM.png");
+
 
 
   }
+
+  cout <<endl <<endl << " --------------FINAL INFO--------------- " <<endl<<endl;
+  for(unsigned int i = 0; i < INEM.size();i++){
+	  cout << " AMBULANCE ID  : " << INEM.at(i).getId() << " TRAVELS : " <<INEM.at(i).get_num_travels() << " DISTANCE : " << INEM.at(i).getDist() <<endl;
+  }
   tempofinal = std::chrono::system_clock::now();
 
-  cout<<"TOTAL DISTANCE:  "<<this->total_distance;
-  cout<<endl<<endl<<" TempoFinal: "<<std::chrono::duration_cast<std::chrono::nanoseconds>(tempofinal-tempoinicial).count()<<endl;
+  cout<<endl <<" TOTAL DISTANCE:  "<<this->total_distance;
+  cout<<endl<<" FINAL EXECUTION TIME : "<<std::chrono::duration_cast<std::chrono::nanoseconds>(tempofinal-tempoinicial).count()<<endl;
 }
 
 void Emergencia::update_rescue(Veiculo * vehicle, Path path, vector<Edge<No>> edges){
@@ -613,9 +620,22 @@ void Emergencia::drawPath(vector<Edge<No> > &edgepath, string color,
 		if(i == (edgepath.size()-1)){
 			gv->setVertexIcon(edgepath.at(i).getDest()->getInfo().getID(),
 							"../icons/hospital.png");
-		}else
-		gv->setVertexIcon(edgepath.at(i).getDest()->getInfo().getID(),
-				"../icons/normal.png");
+			continue;
+		}else{
+			gv->setVertexIcon(edgepath.at(i).getDest()->getInfo().getID(),
+							"../icons/normal.png");
+		}
+		for(int a = 0; a < this->resgates.size();a++){
+			if(resgates.at(a) == edgepath.at(i).getDest()->getInfo() && resgates.at(a).get_num_people() > 0){
+				gv->setVertexIcon(edgepath.at(i).getDest()->getInfo().getID(),
+											"../icons/dead.png");
+				break;
+			}
+		}
+
+		gv->setVertexIcon(hospital.getID(),
+									"../icons/hospital.png");
+
 		gv->rearrange();
 	}
 

@@ -23,6 +23,7 @@ private:
 	No local;
 	unsigned int capacidade;
 	float dist;
+	unsigned int num_travels = 0;
 
 public:
 
@@ -83,6 +84,8 @@ public:
 	void incDist(float dist);
 
 	unsigned int getId();
+
+	unsigned int get_num_travels();
 
 
 };

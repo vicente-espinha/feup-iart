@@ -59,7 +59,12 @@ float Veiculo::getDist(){
 
 void Veiculo::incDist(float dist){
 	this->dist +=dist;
+	this->num_travels++;
 }
 unsigned int Veiculo::getId(){
 	return this->ID;
+}
+
+unsigned int Veiculo::get_num_travels(){
+	return this->num_travels;
 }

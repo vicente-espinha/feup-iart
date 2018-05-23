@@ -387,7 +387,7 @@ void algorithmMenu(Emergencia &em,int typeFlag)
 			case 0: {
 
 				int noid;
-				gotoXY(20,17);
+				gotoXY(0,17);
 				em.path(true);
 				//em.displaySmallGraph();
 				cin.get();
@@ -401,7 +401,7 @@ void algorithmMenu(Emergencia &em,int typeFlag)
 			}
 			case 1: {
 				int noid;
-				gotoXY(20,17);
+				gotoXY(0,17);
 				em.path(false);
 				//em.displaySmallGraph();
 				cin.get();
